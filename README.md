@@ -7,7 +7,7 @@ Contiene una aplicacion Spring Boot con arquitectura por capas para el Sprint 1.
 ## Ejecutar
 
 ```cmd
-mvnw.cmd spring-boot:run
+.\mvnw.cmd spring-boot:run
 ```
 
 Puerto: `8080`.
