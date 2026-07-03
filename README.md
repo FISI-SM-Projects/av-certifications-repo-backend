@@ -12,6 +12,10 @@ Contiene una aplicacion Spring Boot con arquitectura por capas para el Sprint 1.
 
 Puerto: `8080`.
 
+## CORS de desarrollo
+
+El backend permite solicitudes `GET` hacia `/api/**` desde `http://localhost:3000` y `http://localhost:3001` para la integracion local con Next.js.
+
 ## Alcance actual
 
 No usa base de datos real, JPA, login, LDAP, seguridad avanzada, PDF real ni firma digital.

@@ -5,6 +5,7 @@ pe\edu\unmsm\fisi\gestiondocente\constancia\entity\Constancia.class
 pe\edu\unmsm\fisi\gestiondocente\common\health\HealthController.class
 pe\edu\unmsm\fisi\gestiondocente\constancia\entity\EstadoConstancia.class
 pe\edu\unmsm\fisi\gestiondocente\constancia\dto\ConstanciaDto.class
+pe\edu\unmsm\fisi\gestiondocente\config\WebConfig.class
 pe\edu\unmsm\fisi\gestiondocente\GestionDocenteApplication.class
 pe\edu\unmsm\fisi\gestiondocente\docente\service\DocenteService.class
 pe\edu\unmsm\fisi\gestiondocente\periodo\entity\PeriodoAcademico.class
