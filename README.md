@@ -1,139 +1,158 @@
 # Gestion Docente FISI - Backend
 
-Repositorio backend del Sistema de Gestion Docente FISI.
+Backend del Sistema de Gestion Docente y Constancias de la FISI. Esta desarrollado con Spring Boot y expone una API REST para el frontend Next.js.
 
-Contiene una aplicacion Spring Boot con arquitectura por capas para el Sprint 1. Expone el endpoint demo del Perfil Docente con datos simulados en memoria.
+Actualmente publica el Perfil Docente con datos simulados en memoria. No usa base de datos ni seguridad real.
 
-## Ejecutar
+## Requisitos
 
-```cmd
+- Java 21
+
+No es necesario instalar Maven: el proyecto usa Maven Wrapper.
+
+## Ejecucion local
+
+Windows PowerShell:
+
+```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-Puerto: `8080`.
+Linux/macOS:
 
-## CORS de desarrollo
+```bash
+chmod +x mvnw
+./mvnw spring-boot:run
+```
 
-El backend permite solicitudes `GET` hacia `/api/**` desde `http://localhost:3000` y `http://localhost:3001` para la integracion local con Next.js.
+Puerto local:
 
-## Estructura interna del backend
+```text
+8080
+```
 
-El codigo Java del backend se encuentra dentro de `src/main/java/`. La ruta `pe/edu/unmsm/fisi/gestiondocente/` representa el package raiz Java:
+## Endpoints actuales
+
+| Metodo | Ruta                         | Proposito                              |
+| ------ | ---------------------------- | -------------------------------------- |
+| GET    | `/api/v1/health`             | Verificar que el backend responde.     |
+| GET    | `/api/v1/docentes/demo/perfil` | Obtener el Perfil Docente demo.       |
+
+## Estructura
+
+El codigo principal vive en:
+
+```text
+src/main/java/pe/edu/unmsm/fisi/gestiondocente/
+```
+
+La anidacion corresponde al package Java:
 
 ```java
 pe.edu.unmsm.fisi.gestiondocente
 ```
 
-Esta anidacion es normal en Java y Spring Boot. Los packages usan una convencion de dominio invertido para evitar conflictos de nombres, identificar la organizacion propietaria, mantener consistencia entre archivos y declaraciones `package`, y permitir que Spring Boot descubra componentes dentro del package raiz. No se deben mover clases fuera de esta estructura sin actualizar tambien sus declaraciones `package`.
-
 Estructura resumida:
 
 ```text
-src/
-`-- main/
-    |-- java/
-    |   `-- pe/
-    |       `-- edu/
-    |           `-- unmsm/
-    |               `-- fisi/
-    |                   `-- gestiondocente/
-    |                       |-- GestionDocenteApplication.java
-    |                       |-- common/
-    |                       |   |-- exception/
-    |                       |   |-- health/
-    |                       |   |-- response/
-    |                       |   `-- util/
-    |                       |-- config/
-    |                       |-- docente/
-    |                       |-- constancia/
-    |                       `-- periodo/
-    `-- resources/
-        |-- application.properties
-        `-- data.sql
+gestiondocente/
+|-- common/
+|-- config/
+|-- docente/
+|-- constancia/
+`-- periodo/
 ```
 
-`GestionDocenteApplication.java` es el punto de entrada de Spring Boot. Contiene `@SpringBootApplication` e inicia la aplicacion.
+- `common/`: elementos compartidos como health check, respuestas, excepciones y utilidades.
+- `config/`: configuracion transversal, incluida la configuracion web y CORS.
+- `docente/`: datos y operaciones del perfil docente.
+- `constancia/`: datos y operaciones relacionadas con constancias.
+- `periodo/`: datos y operaciones relacionadas con periodos academicos.
 
-`common/` contiene elementos compartidos y transversales, como excepciones, respuestas comunes, utilidades y el health check.
-
-`config/` contiene configuraciones globales, como CORS y configuracion web. En fases posteriores puede alojar configuraciones de seguridad o integracion.
-
-`docente/` es el modulo encargado del perfil y datos del docente.
-
-`constancia/` es el modulo encargado de las constancias.
-
-`periodo/` es el modulo encargado de los periodos academicos.
-
-Cada modulo funcional puede contener estas capas:
+Capas internas usadas por los modulos:
 
 ```text
-controller/
-service/
-repository/
-entity/
-dto/
-mapper/
+controller -> service -> repository
+entity -> mapper -> dto
 ```
 
-`controller/` expone endpoints REST, recibe solicitudes HTTP y delega la logica al service. No debe contener logica de negocio compleja.
+Para agregar nuevas funcionalidades, crear o extender un modulo funcional manteniendo esa separacion por capas.
 
-`service/` contiene la logica de negocio, coordina repositories y mappers, y construye las respuestas necesarias.
+## Integracion con frontend
 
-`repository/` abstrae el acceso a datos. Actualmente puede contener datos simulados en memoria; en el futuro podra usar JPA o una base de datos sin cambiar el controller.
-
-`entity/` representa objetos internos del dominio. En el futuro puede contener entidades JPA.
-
-`dto/` define los datos expuestos por la API y evita que el frontend dependa directamente de entidades internas.
-
-`mapper/` convierte entidades a DTOs y viceversa para mantener separadas las capas internas y externas.
-
-Flujo por capas:
+El frontend esperado se ejecuta en:
 
 ```text
-Cliente HTTP
-    |
-    v
-Controller
-    |
-    v
-Service
-    |
-    v
-Repository
-    |
-    v
-Fuente de datos
+http://localhost:3000
 ```
 
-Flujo de respuesta:
+El CORS de desarrollo permite solicitudes desde `http://localhost:3000` y `http://localhost:3001`.
+
+El frontend consume esta API mediante la variable:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8080
+```
+
+## Estado y limitaciones actuales
+
+- Datos simulados en memoria.
+- Sin base de datos.
+- Sin JPA.
+- Sin LDAP.
+- Sin seguridad real.
+- Sin generacion PDF.
+- Sin firma digital.
+
+## Sprint 2: Autenticación y roles simulados
+
+El Sprint 2 agregara una autenticacion simulada para trabajar con usuarios demo, identificar su rol y, cuando corresponda, su Departamento Academico. Servira como preparacion para rutas diferenciadas por rol, pero no sera seguridad real: no usara LDAP, JWT, Spring Security ni base de datos.
+
+Reglas funcionales previstas:
+
+- `DOCENTE`: accede a su perfil docente, sus constancias y funciones relacionadas con sus propias constancias.
+- `DIRECTOR`: pertenece a un unico Departamento Academico y accede al dashboard de direccion, perfiles de docentes de su departamento, constancias generadas por docentes de su departamento y un flujo de aprobacion futuro.
+- `ADMIN`: accede a todas las areas, todos los docentes, todas las constancias y funciones administrativas futuras; en este sprint tendra una interfaz minima.
+
+Departamentos iniciales:
 
 ```text
-Entity
-    |
-    v
-Mapper
-    |
-    v
-DTO
-    |
-    v
-Respuesta JSON
+Ingeniería de Software
+Ciencia de la Computación
 ```
 
-Para agregar un nuevo modulo, mantener una estructura similar:
+Usuarios demo esperados:
 
-```text
-nuevo-modulo/
-|-- controller/
-|-- service/
-|-- repository/
-|-- entity/
-|-- dto/
-`-- mapper/
+- docente de Ingenieria de Software;
+- docente de Ciencia de la Computacion;
+- director de Ingenieria de Software;
+- director de Ciencia de la Computacion;
+- administrador.
+
+Endpoints futuros del Sprint 2, usando datos simulados en memoria:
+
+| Metodo | Ruta                                                               | Proposito                                      |
+| ------ | ------------------------------------------------------------------ | ---------------------------------------------- |
+| GET    | `/api/v1/auth/demo-users`                                          | Listar usuarios demo disponibles.              |
+| POST   | `/api/v1/auth/demo-login`                                          | Crear una sesion simulada para un usuario demo. |
+| GET    | `/api/v1/director/docentes?departamentoAcademico={departamento}`   | Consultar docentes por Departamento Academico. |
+| GET    | `/api/v1/docentes/{teacherCode}/perfil`                            | Consultar el perfil de un docente por codigo.  |
+
+Contrato funcional de sesion esperado:
+
+```json
+{
+  "user": {
+    "id": 1,
+    "fullName": "Director Software",
+    "email": "director.software@unmsm.edu.pe",
+    "role": "DIRECTOR",
+    "departamentoAcademico": "Ingeniería de Software",
+    "teacherCode": null
+  }
+}
 ```
 
-Cada funcionalidad importante debe mantenerse dentro de su modulo. No se deben crear carpetas globales gigantes de controllers o services. Los elementos compartidos van en `common/` y las configuraciones transversales van en `config/`.
+`role` define el tipo de usuario. `departamentoAcademico` limita el alcance del director. `teacherCode` vincula un usuario docente con su perfil. Para `ADMIN`, `departamentoAcademico` y `teacherCode` pueden ser `null`.
 
-## Alcance actual
-
-No usa base de datos real, JPA, login, LDAP, seguridad avanzada, PDF real ni firma digital.
+La restriccion sera simulada: un docente solo ve lo suyo, un director solo ve docentes y constancias de su Departamento Academico, y admin tiene acceso general. La autorizacion real se implementara en un sprint futuro.

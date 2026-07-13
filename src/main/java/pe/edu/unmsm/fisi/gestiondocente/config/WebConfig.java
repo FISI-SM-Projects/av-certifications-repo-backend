@@ -14,7 +14,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://localhost:3000",
                         "http://localhost:3001"
                 )
-                .allowedMethods("GET")
+                .allowedMethods("GET", "POST")
                 .allowedHeaders("*");
     }
 }
