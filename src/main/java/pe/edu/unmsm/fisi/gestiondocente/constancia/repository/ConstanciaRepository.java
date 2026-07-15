@@ -1,38 +1,51 @@
 package pe.edu.unmsm.fisi.gestiondocente.constancia.repository;
 
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
-import org.springframework.stereotype.Repository;
-
+import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.CertificateGenerationMetadata;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.Constancia;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.EstadoConstancia;
 
-@Repository
-public class ConstanciaRepository {
+public interface ConstanciaRepository {
 
-    public List<Constancia> findByDocenteId(Long docenteId) {
-        return List.of(
-                new Constancia(
-                        1L,
-                        "Constancia de cumplimiento en Aula Virtual",
-                        EstadoConstancia.GENERADO,
-                        LocalDate.of(2026, 6, 20),
-                        "/constancias/demo-2026-I.pdf",
-                        1L,
-                        1L
-                ),
-                new Constancia(
-                        2L,
-                        "Constancia de cumplimiento en Aula Virtual",
-                        EstadoConstancia.APROBADO,
-                        LocalDate.of(2025, 12, 10),
-                        "/constancias/demo-2025-II.pdf",
-                        1L,
-                        2L
-                )
-        ).stream()
-                .filter(constancia -> constancia.getDocenteId().equals(docenteId))
-                .toList();
+    default List<Constancia> findByDocenteId(Long docenteId) {
+        throw new UnsupportedOperationException("Operacion no soportada por este repositorio");
+    }
+
+    default CertificateGenerationMetadata saveGeneration(Object request,
+            CertificateGenerationMetadata metadata, byte[] pdfBytes) {
+        throw new UnsupportedOperationException("Operacion no soportada por este repositorio");
+    }
+
+    default Optional<CertificateGenerationMetadata> findByGenerationId(String generationId) {
+        throw new UnsupportedOperationException("Operacion no soportada por este repositorio");
+    }
+
+    default List<CertificateGenerationMetadata> findHistoryByCertificateKey(String certificateKey) {
+        throw new UnsupportedOperationException("Operacion no soportada por este repositorio");
+    }
+
+    default Optional<CertificateGenerationMetadata> findLatestByCertificateKey(String certificateKey) {
+        throw new UnsupportedOperationException("Operacion no soportada por este repositorio");
+    }
+
+    default List<CertificateGenerationMetadata> findLatestByTeacherCode(String teacherCode) {
+        throw new UnsupportedOperationException("Operacion no soportada por este repositorio");
+    }
+
+    default List<CertificateGenerationMetadata> findByTeacherCodeAndSemester(String teacherCode, String semester) {
+        throw new UnsupportedOperationException("Operacion no soportada por este repositorio");
+    }
+
+    default int nextVersion(String certificateKey) {
+        throw new UnsupportedOperationException("Operacion no soportada por este repositorio");
+    }
+
+    default boolean existsApprovedByCertificateKey(String certificateKey) {
+        throw new UnsupportedOperationException("Operacion no soportada por este repositorio");
+    }
+
+    default Optional<byte[]> readPdf(String generationId) {
+        throw new UnsupportedOperationException("Operacion no soportada por este repositorio");
     }
 }

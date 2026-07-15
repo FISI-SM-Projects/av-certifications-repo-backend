@@ -1,5 +1,6 @@
 package pe.edu.unmsm.fisi.gestiondocente.docente.controller;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -33,7 +34,8 @@ class DocenteControllerTest {
                 .andExpect(jsonPath("$.docente.departamentoAcademico").value("Ingeniería de Software"))
                 .andExpect(jsonPath("$.docente.escuelaProfesional").doesNotExist())
                 .andExpect(jsonPath("$.constancias").isArray())
-                .andExpect(jsonPath("$.constancias.length()").value(2));
+                .andExpect(jsonPath("$.constancias.length()").value(2))
+                .andExpect(jsonPath("$.constancias[*].estado", containsInAnyOrder("GENERADO", "APROBADO")));
     }
 
     @Test
@@ -87,6 +89,8 @@ class DocenteControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.docente.codigo").value("082026"))
                 .andExpect(jsonPath("$.docente.nombres").value("Juan Carlos"))
+                .andExpect(jsonPath("$.constancias").isArray())
+                .andExpect(jsonPath("$.constancias.length()").value(2))
                 .andExpect(jsonPath("$.docente.apellidos").value("Pérez Gómez"))
                 .andExpect(jsonPath("$.docente.departamentoAcademico").value("Ingeniería de Software"));
     }
@@ -96,6 +100,7 @@ class DocenteControllerTest {
         mockMvc.perform(get("/api/v1/docentes/082028/perfil"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.docente.codigo").value("082028"))
+                .andExpect(jsonPath("$.constancias").isArray())
                 .andExpect(jsonPath("$.docente.nombres").value("Carlos Alberto"))
                 .andExpect(jsonPath("$.docente.apellidos").value("Ramos Silva"))
                 .andExpect(jsonPath("$.docente.departamentoAcademico").value("Ciencia de la Computación"));
