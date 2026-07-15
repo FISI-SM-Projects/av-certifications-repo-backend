@@ -1,8 +1,8 @@
 # Gestion Docente FISI - Backend
 
-Backend del Sistema de Gestion Docente y Constancias de la FISI. Esta desarrollado con Spring Boot y expone una API REST para el frontend Next.js.
+Backend del Sistema de Gestion Docente y Constancias de la FISI. Esta desarrollado con Spring Boot y expone una API REST consumida por el frontend Next.js.
 
-El proyecto queda al cierre del Sprint 2 con datos simulados en memoria, autenticacion demo por rol y consultas base para las vistas de docente, director y administrador.
+Al cierre del Sprint 3 el proyecto trabaja con datos demo, autenticacion simulada, persistencia local de constancias y generacion de PDF para constancias por curso y semestrales.
 
 ## Tecnologias
 
@@ -10,6 +10,7 @@ El proyecto queda al cierre del Sprint 2 con datos simulados en memoria, autenti
 - Spring Boot
 - Maven Wrapper
 - JUnit / MockMvc
+- PDFBox
 
 ## Ejecucion
 
@@ -37,6 +38,13 @@ Puerto local:
 | POST | `/api/v1/auth/demo-login` | Realizar login simulado por correo. |
 | GET | `/api/v1/director/docentes?departamentoAcademico={departamento}` | Consultar docentes por Departamento Academico. |
 | GET | `/api/v1/docentes/{teacherCode}/perfil` | Consultar perfil docente por codigo. |
+| POST | `/api/v1/constancias/curso` | Generar una constancia por curso. |
+| POST | `/api/v1/constancias/semestral` | Generar una constancia semestral a partir de constancias por curso existentes. |
+| GET | `/api/v1/constancias/docentes/{teacherCode}` | Listar ultimas versiones visibles de un docente. |
+| GET | `/api/v1/constancias/generaciones/{generationId}` | Consultar metadata publica de una generacion. |
+| GET | `/api/v1/constancias/certificados/{certificateKey}/historial` | Consultar historial de versiones de una constancia logica. |
+| GET | `/api/v1/constancias/generaciones/{generationId}/pdf` | Visualizar PDF en navegador. |
+| GET | `/api/v1/constancias/generaciones/{generationId}/download` | Descargar PDF. |
 
 ## Usuarios y roles demo
 
@@ -46,39 +54,44 @@ Roles disponibles:
 - `DIRECTOR`
 - `ADMIN`
 
-La autenticacion es simulada:
+La autenticacion es simulada: no hay contrasena, token, sesion HTTP real, LDAP ni Spring Security.
 
-- no hay contrasena;
-- no hay token;
-- no hay sesion HTTP real;
-- los datos se almacenan en memoria;
-- no representa seguridad de produccion.
+## Constancias
 
-## Estado funcional
+- Tipo `CURSO`: genera PDF, `request.json`, `metadata.json` y versiona por `teacherCode-courseCode-section-semester`.
+- Tipo `SEMESTRAL`: valida cursos esperados, usa la ultima generacion por curso, genera `source-summary.json`, `metadata.json` y PDF.
+- Estados permitidos: `GENERADO` y `APROBADO`.
+- Si una constancia logica ya tiene una version `APROBADO`, se bloquean nuevas generaciones.
+- Los errores principales devuelven JSON controlado: campos faltantes, cursos faltantes, identificadores invalidos, PDF no encontrado y generacion no encontrada.
 
-- Login demo por correo.
-- Usuarios demo para docente, director y administrador.
-- Consulta de docentes por Departamento Academico.
-- Consulta de perfil docente por codigo.
-- Perfil docente demo del Sprint 1 conservado.
-- Constancias demo con estados `GENERADO` y `APROBADO`.
+## Persistencia local
+
+El almacenamiento usa la carpeta local `storage/`:
+
+```text
+storage/certificates/course/{semester}/{teacherCode}/{courseCode}-{section}/vNNN/
+storage/certificates/semester/{semester}/{teacherCode}/vNNN/
+```
+
+Se guardan solicitudes JSON, metadata y PDF. No hay base de datos ni JPA. `storage/**` esta ignorado salvo `storage/.gitkeep`.
 
 ## Limitaciones
 
+- Sin Moodle real.
+- Sin aprobacion formal por director.
 - Sin base de datos.
 - Sin JPA.
 - Sin Spring Security.
 - Sin JWT.
 - Sin LDAP.
-- Sin aprobacion real de constancias.
-- Sin generacion PDF.
-- Sin persistencia.
+- Sin QR.
+- Sin firma digital.
 
 ## Pruebas
 
-Resultado actual de cierre del Sprint 2:
+Resultado de cierre del Sprint 3:
 
-- 36 tests ejecutados.
+- 193 tests ejecutados.
 - 0 fallos.
 - 0 errores.
 - 0 omitidos.
@@ -87,4 +100,4 @@ Si Maven Wrapper necesita descargar dependencias o la distribucion de Maven, pue
 
 ## Siguiente sprint
 
-El siguiente sprint deberia enfocarse en el flujo real de constancias: aprobacion, generacion de PDF, trazabilidad y reemplazo progresivo de la autenticacion simulada por seguridad real cuando corresponda.
+El siguiente sprint deberia enfocarse en aprobacion por director, trazabilidad/auditoria, seguridad real, integracion Moodle y persistencia con base de datos si el alcance lo confirma.
