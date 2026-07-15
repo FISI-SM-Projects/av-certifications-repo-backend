@@ -71,8 +71,8 @@ public class FileSystemConstanciaRepository implements ConstanciaRepository {
         try {
             Files.createDirectories(parentDirectory);
             Files.createDirectory(tempDirectory);
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(tempDirectory.resolve(REQUEST_FILE).toFile(),
-                    request);
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(
+                    tempDirectory.resolve(requestFileName(metadata)).toFile(), request);
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(tempDirectory.resolve(METADATA_FILE).toFile(),
                     metadata);
 
@@ -86,6 +86,18 @@ public class FileSystemConstanciaRepository implements ConstanciaRepository {
             deleteDirectoryIfExists(tempDirectory);
             throw toStorageException(exception);
         }
+    }
+
+    @Override
+    public <T> Optional<T> readRequest(String generationId, Class<T> requestType) {
+        if (requestType == null) {
+            throw new StorageException("El tipo de solicitud es obligatorio");
+        }
+
+        return findByGenerationId(generationId)
+                .map(metadata -> resolveGenerationDirectory(metadata).resolve(requestFileName(metadata)))
+                .filter(Files::exists)
+                .map(path -> readRequestFile(path, requestType));
     }
 
     @Override
@@ -184,6 +196,26 @@ public class FileSystemConstanciaRepository implements ConstanciaRepository {
         if (metadata.getType() == TipoConstancia.CURSO) {
             storagePathSanitizer.sanitizeSegment(metadata.getCourseCode());
             storagePathSanitizer.sanitizeSegment(metadata.getSection());
+        }
+    }
+
+    private String requestFileName(CertificateGenerationMetadata metadata) {
+        String requestFile = metadata.getRequestFile();
+
+        if (requestFile == null || requestFile.trim().isEmpty()) {
+            return REQUEST_FILE;
+        }
+
+        return storagePathSanitizer.sanitizeSegment(requestFile);
+    }
+
+    private <T> T readRequestFile(Path requestPath, Class<T> requestType) {
+        assertInsideRoot(requestPath.normalize());
+
+        try {
+            return objectMapper.readValue(requestPath.toFile(), requestType);
+        } catch (IOException exception) {
+            throw new StorageException("No se pudo leer la solicitud de constancia", exception);
         }
     }
 

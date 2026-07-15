@@ -256,8 +256,20 @@ class CourseCertificateEndToEndTest {
 
     @Test
     void errorPdfNoDebePersistirGeneracion() throws Exception {
-        MockMvc failingPdfMockMvc = buildMockMvc(repository, (request, metadata) -> {
-            throw new PdfGenerationException("fallo interno del PDF");
+        MockMvc failingPdfMockMvc = buildMockMvc(repository, new PdfGenerationService() {
+            @Override
+            public byte[] generateCourseCertificate(
+                    pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CourseCertificateRequest request,
+                    CertificateGenerationMetadata metadata) {
+                throw new PdfGenerationException("fallo interno del PDF");
+            }
+
+            @Override
+            public byte[] generateSemesterCertificate(
+                    pe.edu.unmsm.fisi.gestiondocente.constancia.dto.SemesterCertificateSourceSummary sourceSummary,
+                    CertificateGenerationMetadata metadata) {
+                throw new PdfGenerationException("fallo interno del PDF");
+            }
         });
 
         failingPdfMockMvc.perform(post("/api/v1/constancias/curso")

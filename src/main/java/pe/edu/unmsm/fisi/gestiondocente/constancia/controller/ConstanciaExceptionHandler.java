@@ -12,13 +12,19 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.ApprovedCertificateAlreadyExistsException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.CertificateGenerationNotFoundException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.CertificatePdfNotFoundException;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.CertificateSourceInconsistencyException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.GenerationAlreadyExistsException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.InvalidStoragePathException;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.MissingExpectedCoursesException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.MissingRequiredFieldsException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.PdfGenerationException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.StorageException;
 
-@RestControllerAdvice(assignableTypes = { CourseCertificateController.class, ConstanciaQueryController.class })
+@RestControllerAdvice(assignableTypes = {
+        CourseCertificateController.class,
+        SemesterCertificateController.class,
+        ConstanciaQueryController.class
+})
 public class ConstanciaExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -26,6 +32,22 @@ public class ConstanciaExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("message", "JSON inválido"));
+    }
+
+    @ExceptionHandler(MissingExpectedCoursesException.class)
+    public ResponseEntity<MissingCoursesErrorResponse> handleMissingCourses(
+            MissingExpectedCoursesException exception) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(new MissingCoursesErrorResponse(exception.getMessage(), exception.getMissingCourses()));
+    }
+
+    @ExceptionHandler(CertificateSourceInconsistencyException.class)
+    public ResponseEntity<Map<String, String>> handleSourceInconsistency(
+            CertificateSourceInconsistencyException exception) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of("message", exception.getMessage()));
     }
 
     @ExceptionHandler(MissingRequiredFieldsException.class)
@@ -88,6 +110,25 @@ public class ConstanciaExceptionHandler {
 
         public List<String> getMissingFields() {
             return missingFields;
+        }
+    }
+
+    public static class MissingCoursesErrorResponse {
+
+        private final String message;
+        private final List<?> missingCourses;
+
+        public MissingCoursesErrorResponse(String message, List<?> missingCourses) {
+            this.message = message;
+            this.missingCourses = List.copyOf(missingCourses);
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public List<?> getMissingCourses() {
+            return missingCourses;
         }
     }
 }

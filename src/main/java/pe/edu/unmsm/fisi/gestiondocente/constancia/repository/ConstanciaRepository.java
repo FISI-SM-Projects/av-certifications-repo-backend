@@ -17,6 +17,10 @@ public interface ConstanciaRepository {
         throw new UnsupportedOperationException("Operacion no soportada por este repositorio");
     }
 
+    default <T> Optional<T> readRequest(String generationId, Class<T> requestType) {
+        throw new UnsupportedOperationException("Operacion no soportada por este repositorio");
+    }
+
     default Optional<CertificateGenerationMetadata> findByGenerationId(String generationId) {
         throw new UnsupportedOperationException("Operacion no soportada por este repositorio");
     }

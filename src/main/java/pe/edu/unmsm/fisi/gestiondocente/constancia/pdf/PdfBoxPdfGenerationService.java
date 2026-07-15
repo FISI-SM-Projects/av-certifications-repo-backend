@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CourseCertificateRequest;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CoursePayload;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.SemesterCertificateSource;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.SemesterCertificateSourceSummary;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.TeacherPayload;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.CertificateGenerationMetadata;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.PdfGenerationException;
@@ -53,6 +55,27 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
             return outputStream.toByteArray();
         } catch (IOException exception) {
             throw new PdfGenerationException("No se pudo generar el PDF de constancia", exception);
+        }
+    }
+
+    @Override
+    public byte[] generateSemesterCertificate(SemesterCertificateSourceSummary sourceSummary,
+            CertificateGenerationMetadata metadata) {
+        validateSemesterData(sourceSummary, metadata);
+
+        try (PDDocument document = new PDDocument();
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            PDFont regularFont = loadRegularFont(document);
+            PDFont boldFont = loadBoldFont(document);
+            PdfWriter writer = new PdfWriter(document, regularFont, boldFont);
+
+            writeSemesterCertificate(writer, sourceSummary, metadata);
+
+            writer.close();
+            document.save(outputStream);
+            return outputStream.toByteArray();
+        } catch (IOException exception) {
+            throw new PdfGenerationException("No se pudo generar el PDF de constancia semestral", exception);
         }
     }
 
@@ -99,6 +122,35 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
                 + " | Sección: " + course.getSection());
     }
 
+    private void writeSemesterCertificate(PdfWriter writer, SemesterCertificateSourceSummary sourceSummary,
+            CertificateGenerationMetadata metadata) throws IOException {
+        writer.writeCenteredTitle(
+                "CONSTANCIA SEMESTRAL DE ELABORACIÓN Y PUBLICACIÓN DE MATERIALES DIDÁCTICOS EN EL AULA VIRTUAL");
+        writer.space(16F);
+        writer.writeParagraph("A QUIEN CORRESPONDA:", true);
+        writer.space(8F);
+        writer.writeParagraph("Por medio de la presente se deja constancia que el docente "
+                + sourceSummary.getTeacherFullName() + ", identificado con código docente "
+                + sourceSummary.getTeacherCode() + ", cuenta con constancias por curso registradas para el periodo "
+                + "académico " + sourceSummary.getSemester() + ".", false);
+        writer.space(6F);
+        writer.writeParagraph("La presente constancia semestral consolida "
+                + sourceSummary.getSourceGenerations().size()
+                + " cursos con materiales didácticos elaborados y publicados en el Aula Virtual institucional.",
+                false);
+        writer.space(10F);
+        writer.writeSemesterTable(sourceSummary.getSourceGenerations());
+        writer.space(14F);
+        writer.writeParagraph("Lima, " + formatSpanishDate(metadata.getGeneratedAt().toLocalDate()), false);
+        writer.space(18F);
+        writer.writeParagraph("Oficina del Aula Virtual", false);
+        writer.writeParagraph("Facultad de Ingeniería de Sistemas e Informática", false);
+        writer.writeParagraph("Universidad Nacional Mayor de San Marcos", false);
+        writer.writeFooter("ID interno: " + metadata.getGenerationId()
+                + " | Versión: v" + String.format("%03d", metadata.getVersion())
+                + " | Periodo: " + sourceSummary.getSemester());
+    }
+
     private void validateRequiredData(CourseCertificateRequest request, CertificateGenerationMetadata metadata) {
         if (request == null) {
             throw new PdfGenerationException("La solicitud de constancia es obligatoria");
@@ -115,6 +167,26 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
         requireText(request.getTeacher().getFullName(), "El nombre del docente es obligatorio");
         requireText(request.getCourse().getSubject(), "El nombre del curso es obligatorio");
         requireText(request.getCourse().getSemester(), "El semestre es obligatorio");
+        requireText(metadata.getGenerationId(), "El identificador de generación es obligatorio");
+        if (metadata.getGeneratedAt() == null) {
+            throw new PdfGenerationException("La fecha de generación es obligatoria");
+        }
+    }
+
+    private void validateSemesterData(SemesterCertificateSourceSummary sourceSummary,
+            CertificateGenerationMetadata metadata) {
+        if (sourceSummary == null) {
+            throw new PdfGenerationException("El resumen de fuentes es obligatorio");
+        }
+        if (metadata == null) {
+            throw new PdfGenerationException("La metadata de generación es obligatoria");
+        }
+        requireText(sourceSummary.getTeacherCode(), "El código docente es obligatorio");
+        requireText(sourceSummary.getTeacherFullName(), "El nombre del docente es obligatorio");
+        requireText(sourceSummary.getSemester(), "El semestre es obligatorio");
+        if (sourceSummary.getSourceGenerations() == null || sourceSummary.getSourceGenerations().isEmpty()) {
+            throw new PdfGenerationException("Las fuentes de constancia semestral son obligatorias");
+        }
         requireText(metadata.getGenerationId(), "El identificador de generación es obligatorio");
         if (metadata.getGeneratedAt() == null) {
             throw new PdfGenerationException("La fecha de generación es obligatoria");
@@ -213,6 +285,56 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
                 writeText(row[1], font, FONT_SIZE, MARGIN + firstColumnWidth, y);
                 y -= rowHeight;
             }
+        }
+
+        void writeSemesterTable(List<SemesterCertificateSource> sources) throws IOException {
+            float tableWidth = pageWidth - (2 * MARGIN);
+            float[] widths = new float[] {
+                    tableWidth * 0.14F,
+                    tableWidth * 0.33F,
+                    tableWidth * 0.10F,
+                    tableWidth * 0.10F,
+                    tableWidth * 0.10F,
+                    tableWidth * 0.15F
+            };
+            writeSemesterTableRow(
+                    new String[] { "Código", "Nombre del curso", "Sección", "Escuela", "Plan", "Estado" },
+                    widths,
+                    true);
+
+            for (SemesterCertificateSource source : sources) {
+                writeSemesterTableRow(
+                        new String[] {
+                                source.getCourseCode(),
+                                source.getCourseSubject(),
+                                source.getSection(),
+                                source.getSchool(),
+                                source.getPlan(),
+                                source.getStatus().name()
+                        },
+                        widths,
+                        false);
+            }
+        }
+
+        private void writeSemesterTableRow(String[] values, float[] widths, boolean header) throws IOException {
+            float rowHeight = 28F;
+            ensureSpace(rowHeight + 4F);
+            PDFont font = header ? boldFont : regularFont;
+            float fontSize = header ? 8.5F : 8F;
+            float x = MARGIN;
+
+            for (int i = 0; i < values.length; i++) {
+                List<String> lines = wrapText(values[i], font, fontSize, widths[i] - 4F);
+                float lineY = y;
+                for (int j = 0; j < Math.min(lines.size(), 2); j++) {
+                    writeText(lines.get(j), font, fontSize, x, lineY);
+                    lineY -= 10F;
+                }
+                x += widths[i];
+            }
+
+            y -= rowHeight;
         }
 
         void writeFooter(String text) throws IOException {

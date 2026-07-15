@@ -3,10 +3,13 @@ package pe.edu.unmsm.fisi.gestiondocente.constancia.validation;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Component;
+
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.ExpectedCourseRequest;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.SemesterCertificateRequest;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.MissingRequiredFieldsException;
 
+@Component
 public class SemesterCertificateRequestValidator {
 
     public void validate(SemesterCertificateRequest request) {
