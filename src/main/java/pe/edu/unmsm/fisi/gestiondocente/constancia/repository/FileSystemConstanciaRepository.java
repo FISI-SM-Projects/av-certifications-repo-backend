@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.CertificateGenerationMetadata;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.EstadoConstancia;
@@ -53,7 +54,9 @@ public class FileSystemConstanciaRepository implements CertificateGenerationRepo
     public FileSystemConstanciaRepository(Path storageRoot, ObjectMapper objectMapper,
             StoragePathSanitizer storagePathSanitizer) {
         this.root = storageRoot.toAbsolutePath().normalize();
-        this.objectMapper = objectMapper;
+        this.objectMapper = objectMapper.copy()
+                .findAndRegisterModules()
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         this.storagePathSanitizer = storagePathSanitizer;
         try {
             Files.createDirectories(this.root);

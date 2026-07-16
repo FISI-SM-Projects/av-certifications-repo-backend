@@ -11,7 +11,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 
@@ -78,7 +77,7 @@ class CourseCertificateServiceTest {
         assertThat(response.getCourseSubject()).isEqualTo("Nombre del curso");
         assertThat(response.getSection()).isEqualTo("1");
         assertThat(response.getSemester()).isEqualTo("26.1");
-        assertThat(response.getGeneratedAt()).isEqualTo(LocalDateTime.of(2026, 7, 14, 15, 30));
+        assertThat(response.getGeneratedAt()).isEqualTo(Instant.parse("2026-07-14T15:30:00Z"));
         assertThat(response.getViewUrl()).isEqualTo(
                 "/api/v1/constancias/generaciones/22200275-32BGNYGF-1-26.1-v001/pdf");
         assertThat(response.getDownloadUrl()).isEqualTo(
@@ -179,7 +178,7 @@ class CourseCertificateServiceTest {
 
         CourseCertificateResponse response = service.generateCourseCertificate(validRequest());
 
-        assertThat(response.getGeneratedAt()).isEqualTo(LocalDateTime.of(2026, 7, 14, 15, 30));
+        assertThat(response.getGeneratedAt()).isEqualTo(Instant.parse("2026-07-14T15:30:00Z"));
     }
 
     private CourseCertificateRequest validRequest() {

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.ZoneId;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,7 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
     private static final float FOOTER_FONT_SIZE = 8F;
     private static final float LEADING = 15F;
     private static final Locale SPANISH = Locale.forLanguageTag("es");
+    private static final ZoneId LIMA_ZONE = ZoneId.of("America/Lima");
 
     @Override
     public byte[] generateCourseCertificate(CourseCertificateRequest request, CertificateGenerationMetadata metadata) {
@@ -112,7 +114,7 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
         writer.writeParagraph("Se expide la presente constancia a solicitud del interesado, para los fines "
                 + "académicos y administrativos que estime convenientes.", false);
         writer.space(14F);
-        writer.writeParagraph("Lima, " + formatSpanishDate(metadata.getGeneratedAt().toLocalDate()), false);
+        writer.writeParagraph("Lima, " + formatSpanishDate(generatedDateInLima(metadata)), false);
         writer.space(18F);
         writer.writeParagraph("Oficina del Aula Virtual", false);
         writer.writeParagraph("Facultad de Ingeniería de Sistemas e Informática", false);
@@ -142,7 +144,7 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
         writer.space(10F);
         writer.writeSemesterTable(sourceSummary.getSourceGenerations());
         writer.space(14F);
-        writer.writeParagraph("Lima, " + formatSpanishDate(metadata.getGeneratedAt().toLocalDate()), false);
+        writer.writeParagraph("Lima, " + formatSpanishDate(generatedDateInLima(metadata)), false);
         writer.space(18F);
         writer.writeParagraph("Oficina del Aula Virtual", false);
         writer.writeParagraph("Facultad de Ingeniería de Sistemas e Informática", false);
@@ -205,6 +207,10 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
         return date.getDayOfMonth() + " de "
                 + month.getDisplayName(TextStyle.FULL, SPANISH)
                 + " de " + date.getYear();
+    }
+
+    private LocalDate generatedDateInLima(CertificateGenerationMetadata metadata) {
+        return metadata.getGeneratedAt().atZone(LIMA_ZONE).toLocalDate();
     }
 
     private PDFont loadRegularFont(PDDocument document) throws IOException {

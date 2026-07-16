@@ -18,7 +18,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
@@ -97,7 +96,7 @@ class CourseCertificateEndToEndTest {
                 .andExpect(jsonPath("$.version").value(1))
                 .andExpect(jsonPath("$.type").value("CURSO"))
                 .andExpect(jsonPath("$.status").value("GENERADO"))
-                .andExpect(jsonPath("$.generatedAt").value("2026-07-14T10:30:00"))
+                .andExpect(jsonPath("$.generatedAt").value("2026-07-14T10:30:00Z"))
                 .andExpect(jsonPath("$.viewUrl").value(
                         "/api/v1/constancias/generaciones/22200275-32BGNYGF-1-26.1-v001/pdf"))
                 .andExpect(jsonPath("$.downloadUrl").value(
@@ -406,7 +405,7 @@ class CourseCertificateEndToEndTest {
         assertThat(metadata.getCourseCode()).isEqualTo("32BGNYGF");
         assertThat(metadata.getSection()).isEqualTo("1");
         assertThat(metadata.getSemester()).isEqualTo("26.1");
-        assertThat(metadata.getGeneratedAt()).isEqualTo(LocalDateTime.of(2026, 7, 14, 10, 30));
+        assertThat(metadata.getGeneratedAt()).isEqualTo(Instant.parse("2026-07-14T10:30:00Z"));
 
         byte[] pdf = Files.readAllBytes(generationDirectory.resolve("certificate.pdf"));
         assertThat(pdf).isNotEmpty();
@@ -442,7 +441,7 @@ class CourseCertificateEndToEndTest {
                 "32BGNYGF",
                 "1",
                 "26.1",
-                LocalDateTime.of(2026, 7, 14, 10, 30),
+                Instant.parse("2026-07-14T10:30:00Z"),
                 "request.json",
                 "certificate.pdf");
     }

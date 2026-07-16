@@ -1,6 +1,6 @@
 package pe.edu.unmsm.fisi.gestiondocente.docente.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.EstadoConstancia;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.TipoConstancia;
@@ -16,7 +16,7 @@ public class ConstanciaPerfilResponse {
     private String courseCode;
     private String section;
     private String semester;
-    private LocalDateTime generatedAt;
+    private Instant generatedAt;
     private String viewUrl;
     private String downloadUrl;
 
@@ -25,7 +25,7 @@ public class ConstanciaPerfilResponse {
 
     public ConstanciaPerfilResponse(String generationId, String certificateKey, int version, TipoConstancia type,
             EstadoConstancia status, String teacherCode, String courseCode, String section, String semester,
-            LocalDateTime generatedAt, String viewUrl, String downloadUrl) {
+            Instant generatedAt, String viewUrl, String downloadUrl) {
         this.generationId = generationId;
         this.certificateKey = certificateKey;
         this.version = version;
@@ -112,11 +112,11 @@ public class ConstanciaPerfilResponse {
         this.semester = semester;
     }
 
-    public LocalDateTime getGeneratedAt() {
+    public Instant getGeneratedAt() {
         return generatedAt;
     }
 
-    public void setGeneratedAt(LocalDateTime generatedAt) {
+    public void setGeneratedAt(Instant generatedAt) {
         this.generatedAt = generatedAt;
     }
 

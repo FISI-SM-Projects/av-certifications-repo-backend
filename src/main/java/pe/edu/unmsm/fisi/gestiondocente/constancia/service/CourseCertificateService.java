@@ -1,7 +1,7 @@
 package pe.edu.unmsm.fisi.gestiondocente.constancia.service;
 
 import java.time.Clock;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -161,7 +161,7 @@ public class CourseCertificateService {
                 request.getCourse().getCode(),
                 request.getCourse().getSection(),
                 request.getCourse().getSemester(),
-                LocalDateTime.now(clock),
+                Instant.now(clock),
                 REQUEST_FILE,
                 PDF_FILE);
     }

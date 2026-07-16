@@ -17,6 +17,10 @@ Thumbs.db
 # Logs
 *.log
 
+# Exportaciones limpias
+dist/
+exports/
+
 # Variables locales
 .env
 .env.*

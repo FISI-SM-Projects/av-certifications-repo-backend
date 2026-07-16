@@ -1,5 +1,7 @@
 package pe.edu.unmsm.fisi.gestiondocente.constancia.controller;
 
+import java.time.Instant;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.Mockito.mock;
@@ -10,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -153,7 +154,7 @@ class ConstanciaQueryControllerTest {
                 "32BGNYGF",
                 "1",
                 "26.1",
-                LocalDateTime.of(2026, 7, 14, 10, 30),
+                Instant.parse("2026-07-14T10:30:00Z"),
                 "/api/v1/constancias/generaciones/" + generationId + "/pdf",
                 "/api/v1/constancias/generaciones/" + generationId + "/download");
     }

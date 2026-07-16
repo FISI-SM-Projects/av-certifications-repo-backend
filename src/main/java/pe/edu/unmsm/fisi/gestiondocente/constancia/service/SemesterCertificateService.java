@@ -1,7 +1,7 @@
 package pe.edu.unmsm.fisi.gestiondocente.constancia.service;
 
 import java.time.Clock;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -274,7 +274,7 @@ public class SemesterCertificateService {
                 null,
                 null,
                 request.getSemester(),
-                LocalDateTime.now(clock),
+                Instant.now(clock),
                 SOURCE_SUMMARY_FILE,
                 PDF_FILE);
     }

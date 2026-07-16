@@ -1,5 +1,7 @@
 package pe.edu.unmsm.fisi.gestiondocente.constancia.repository;
 
+import java.time.Instant;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -7,7 +9,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -347,7 +348,7 @@ class FileSystemConstanciaRepositoryTest {
                 courseCode,
                 section,
                 semester,
-                LocalDateTime.of(2026, 7, 14, 12, 0),
+                Instant.parse("2026-07-14T12:00:00Z"),
                 "request.json",
                 "certificate.pdf");
     }
@@ -366,7 +367,7 @@ class FileSystemConstanciaRepositoryTest {
                 null,
                 null,
                 semester,
-                LocalDateTime.of(2026, 7, 14, 12, 0),
+                Instant.parse("2026-07-14T12:00:00Z"),
                 "source-summary.json",
                 "certificate.pdf");
     }

@@ -242,7 +242,7 @@ class SemesterCertificateIntegrationTest {
                 null,
                 null,
                 "26.1",
-                java.time.LocalDateTime.of(2026, 7, 14, 10, 30),
+                java.time.Instant.parse("2026-07-14T10:30:00Z"),
                 "source-summary.json",
                 "certificate.pdf");
         repository.saveGeneration(java.util.Map.of("sourceGenerations", java.util.List.of()), approved,

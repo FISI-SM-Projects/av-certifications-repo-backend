@@ -1,103 +1,136 @@
 # Gestion Docente FISI - Backend
 
-Backend del Sistema de Gestion Docente y Constancias de la FISI. Esta desarrollado con Spring Boot y expone una API REST consumida por el frontend Next.js.
+Backend del Sistema de Gestion Docente y Constancias de la FISI. Esta desarrollado con Spring Boot, expone una API REST para el frontend Next.js y mantiene persistencia local de constancias versionadas.
 
-Al cierre del Sprint 3 el proyecto trabaja con datos demo, autenticacion simulada, persistencia local de constancias y generacion de PDF para constancias por curso y semestrales.
+El proyecto usa datos demo y autenticacion simulada. No incluye Moodle real, base de datos, JPA, aprobacion formal, QR ni firma digital.
 
-## Tecnologias
+## Requisitos
 
-- Java 21
-- Spring Boot
-- Maven Wrapper
-- JUnit / MockMvc
-- PDFBox
+- Java 21 o superior compatible con el `pom.xml`.
+- Acceso a red solo si Maven Wrapper necesita descargar Maven o dependencias por primera vez.
+- No es necesario instalar Maven globalmente.
 
-## Ejecucion
+## Ejecucion local
+
+Windows:
 
 ```powershell
+.\mvnw.cmd --version
 .\mvnw.cmd clean test
 .\mvnw.cmd spring-boot:start
 .\mvnw.cmd spring-boot:stop
 ```
 
-`spring-boot:run` tambien funciona, pero queda en primer plano mientras el servidor esta activo.
+Linux/macOS:
 
-Puerto local:
-
-```text
-8080
+```bash
+./mvnw --version
+./mvnw clean test
+./mvnw spring-boot:start
+./mvnw spring-boot:stop
 ```
 
-## Endpoints disponibles
+`spring-boot:run` tambien funciona, pero queda en primer plano.
+
+## Configuracion por entorno
+
+Variables soportadas:
+
+```env
+APP_STORAGE_ROOT=storage
+APP_CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+```
+
+`APP_STORAGE_ROOT` define la raiz local de almacenamiento. El valor por defecto es `storage`.
+
+`APP_CORS_ALLOWED_ORIGINS` acepta una lista separada por comas. Por defecto permite:
+
+```text
+http://localhost:3000
+http://localhost:3001
+```
+
+No versionar archivos `.env` reales. Usar `.env.example` como referencia segura.
+
+## Endpoints principales
 
 | Metodo | Ruta | Proposito |
 | ------ | ---- | --------- |
 | GET | `/api/v1/health` | Verificar que el backend responde. |
-| GET | `/api/v1/docentes/demo/perfil` | Obtener el perfil docente demo del Sprint 1. |
-| GET | `/api/v1/auth/demo-users` | Listar usuarios demo disponibles. |
-| POST | `/api/v1/auth/demo-login` | Realizar login simulado por correo. |
-| GET | `/api/v1/director/docentes?departamentoAcademico={departamento}` | Consultar docentes por Departamento Academico. |
-| GET | `/api/v1/docentes/{teacherCode}/perfil` | Consultar perfil docente por codigo. |
-| POST | `/api/v1/constancias/curso` | Generar una constancia por curso. |
-| POST | `/api/v1/constancias/semestral` | Generar una constancia semestral a partir de constancias por curso existentes. |
-| GET | `/api/v1/constancias/docentes/{teacherCode}` | Listar ultimas versiones visibles de un docente. |
-| GET | `/api/v1/constancias/generaciones/{generationId}` | Consultar metadata publica de una generacion. |
-| GET | `/api/v1/constancias/certificados/{certificateKey}/historial` | Consultar historial de versiones de una constancia logica. |
-| GET | `/api/v1/constancias/generaciones/{generationId}/pdf` | Visualizar PDF en navegador. |
+| GET | `/api/v1/auth/demo-users` | Listar usuarios demo. |
+| POST | `/api/v1/auth/demo-login` | Login simulado por correo. |
+| GET | `/api/v1/docentes/demo/perfil` | Perfil demo consolidado. |
+| GET | `/api/v1/docentes/{teacherCode}/perfil` | Perfil docente consolidado por codigo. |
+| GET | `/api/v1/director/docentes?departamentoAcademico={departamento}` | Docentes por departamento. |
+| POST | `/api/v1/constancias/curso` | Generar constancia por curso. |
+| POST | `/api/v1/constancias/semestral` | Generar constancia semestral. |
+| GET | `/api/v1/constancias/docentes/{teacherCode}` | Ultimas constancias visibles del docente. |
+| GET | `/api/v1/constancias/generaciones/{generationId}` | Metadata publica de una generacion. |
+| GET | `/api/v1/constancias/certificados/{certificateKey}/historial` | Historial de versiones. |
+| GET | `/api/v1/constancias/generaciones/{generationId}/pdf` | Visualizar PDF. |
 | GET | `/api/v1/constancias/generaciones/{generationId}/download` | Descargar PDF. |
-
-## Usuarios y roles demo
-
-Roles disponibles:
-
-- `DOCENTE`
-- `DIRECTOR`
-- `ADMIN`
-
-La autenticacion es simulada: no hay contrasena, token, sesion HTTP real, LDAP ni Spring Security.
-
-## Constancias
-
-- Tipo `CURSO`: genera PDF, `request.json`, `metadata.json` y versiona por `teacherCode-courseCode-section-semester`.
-- Tipo `SEMESTRAL`: valida cursos esperados, usa la ultima generacion por curso, genera `source-summary.json`, `metadata.json` y PDF.
-- Estados permitidos: `GENERADO` y `APROBADO`.
-- Si una constancia logica ya tiene una version `APROBADO`, se bloquean nuevas generaciones.
-- Los errores principales devuelven JSON controlado: campos faltantes, cursos faltantes, identificadores invalidos, PDF no encontrado y generacion no encontrada.
 
 ## Persistencia local
 
-El almacenamiento usa la carpeta local `storage/`:
+La persistencia usa filesystem local, no base de datos:
 
 ```text
 storage/certificates/course/{semester}/{teacherCode}/{courseCode}-{section}/vNNN/
 storage/certificates/semester/{semester}/{teacherCode}/vNNN/
 ```
 
-Se guardan solicitudes JSON, metadata y PDF. No hay base de datos ni JPA. `storage/**` esta ignorado salvo `storage/.gitkeep`.
+Archivos por generacion:
 
-## Limitaciones
+- `request.json` para constancias por curso.
+- `source-summary.json` para constancias semestrales.
+- `metadata.json`.
+- `certificate.pdf`.
 
-- Sin Moodle real.
-- Sin aprobacion formal por director.
-- Sin base de datos.
-- Sin JPA.
-- Sin Spring Security.
-- Sin JWT.
-- Sin LDAP.
-- Sin QR.
-- Sin firma digital.
+`storage/**` esta ignorado salvo `storage/.gitkeep`. No compartir `storage/` real con datos locales.
+
+## Fechas
+
+Las fechas auditables de constancias se serializan con zona explicita como `Instant`, por ejemplo:
+
+```text
+2026-07-16T19:30:00Z
+```
+
+La lectura mantiene compatibilidad con metadata historica sin zona, interpretandola como `America/Lima`.
 
 ## Pruebas
 
-Resultado de cierre del Sprint 3:
+```powershell
+.\mvnw.cmd clean test
+```
 
-- 193 tests ejecutados.
-- 0 fallos.
-- 0 errores.
-- 0 omitidos.
+La cantidad actual de pruebas se informa al ejecutar la suite.
 
-Si Maven Wrapper necesita descargar dependencias o la distribucion de Maven, puede requerir acceso de red en entornos restringidos.
+Las pruebas usan almacenamiento temporal y no deben escribir en `storage/` real.
 
-## Siguiente sprint
+## Exportacion limpia
 
-El siguiente sprint deberia enfocarse en aprobacion por director, trazabilidad/auditoria, seguridad real, integracion Moodle y persistencia con base de datos si el alcance lo confirma.
+Generar un ZIP compartible sin artefactos locales:
+
+```powershell
+.\scripts\export-clean.ps1
+```
+
+En Linux/macOS, si `zip` esta disponible:
+
+```bash
+./scripts/export-clean.sh
+```
+
+El ZIP excluye `.git/`, `target/`, `storage/certificates/`, variables `.env`, logs, PDFs y JSON generados. No versionar los ZIP generados.
+
+## Limitaciones
+
+- Autenticacion simulada.
+- Sin Moodle real.
+- Sin aprobacion formal por director.
+- Sin base de datos ni JPA.
+- Sin Spring Security, JWT ni LDAP.
+- Sin QR ni firma digital.
+
+Trabajar sobre la rama local `progress` para los bloques de saneamiento previos al Sprint 4.
