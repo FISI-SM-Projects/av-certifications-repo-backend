@@ -111,7 +111,7 @@ class SemesterCertificateIntegrationTest {
                 .andExpect(jsonPath("$.type").value("SEMESTRAL"))
                 .andExpect(jsonPath("$.status").value("GENERADO"))
                 .andExpect(jsonPath("$.teacherCode").value("22200275"))
-                .andExpect(jsonPath("$.teacherFullName").value("Jose Munoz Pena"))
+                .andExpect(jsonPath("$.teacherFullName").value("Jos\u00e9 Mu\u00f1oz Pe\u00f1a"))
                 .andExpect(jsonPath("$.courseCount").value(2))
                 .andExpect(jsonPath("$.sourceGenerationIds[0]").value(courseOneV2.getGenerationId()))
                 .andExpect(jsonPath("$.sourceGenerationIds[1]").value(courseTwo.getGenerationId()))
@@ -138,7 +138,7 @@ class SemesterCertificateIntegrationTest {
         String pdfText = extractText(pdfBytes);
         assertThat(pdfText)
                 .contains("CONSTANCIA SEMESTRAL")
-                .contains("Jose Munoz Pena")
+                .contains("Jos\u00e9 Mu\u00f1oz Pe\u00f1a")
                 .contains("26.1")
                 .contains("32BGNYGF")
                 .contains("32SW001")
@@ -242,7 +242,7 @@ class SemesterCertificateIntegrationTest {
                 null,
                 null,
                 "26.1",
-                java.time.LocalDateTime.of(2026, 7, 14, 10, 30),
+                java.time.Instant.parse("2026-07-14T10:30:00Z"),
                 "source-summary.json",
                 "certificate.pdf");
         repository.saveGeneration(java.util.Map.of("sourceGenerations", java.util.List.of()), approved,
@@ -265,8 +265,11 @@ class SemesterCertificateIntegrationTest {
 
     private CourseCertificateRequest courseRequest(String code, String subject, String section, String school,
             String plan, String teacherCode, String semester) {
+        TeacherPayload teacher = "22200999".equals(teacherCode)
+                ? new TeacherPayload("Ana Torres Lima", "atorres@unmsm.edu.pe", teacherCode)
+                : new TeacherPayload("Jos\u00e9 Mu\u00f1oz Pe\u00f1a", "jmunoz@unmsm.edu.pe", teacherCode);
         return new CourseCertificateRequest(
-                new TeacherPayload("Jose Munoz Pena", "jmunoz@unmsm.edu.pe", teacherCode),
+                teacher,
                 new CoursePayload(code, subject, "7", section, school, plan, semester),
                 new IssuerPayload("moodle", "12345", "usuario@unmsm.edu.pe"));
     }

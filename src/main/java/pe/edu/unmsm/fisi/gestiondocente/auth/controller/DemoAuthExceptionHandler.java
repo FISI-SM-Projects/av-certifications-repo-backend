@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import pe.edu.unmsm.fisi.gestiondocente.auth.exception.DemoUserNotFoundException;
+
 @RestControllerAdvice(assignableTypes = DemoAuthController.class)
 public class DemoAuthExceptionHandler {
 
@@ -17,8 +19,8 @@ public class DemoAuthExceptionHandler {
                 .body(Map.of("message", exception.getMessage()));
     }
 
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Map<String, String>> handleNotFound(IllegalStateException exception) {
+    @ExceptionHandler(DemoUserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleNotFound(DemoUserNotFoundException exception) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(Map.of("message", exception.getMessage()));

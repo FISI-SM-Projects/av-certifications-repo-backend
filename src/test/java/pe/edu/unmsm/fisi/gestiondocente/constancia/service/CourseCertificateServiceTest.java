@@ -3,7 +3,6 @@ package pe.edu.unmsm.fisi.gestiondocente.constancia.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -12,7 +11,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 
@@ -33,7 +31,7 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.MissingRequiredFiel
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.PdfGenerationException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.StorageException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.pdf.PdfGenerationService;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.ConstanciaRepository;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.CertificateGenerationRepository;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.CourseCertificateRequestValidator;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.StoragePathSanitizer;
 
@@ -41,7 +39,7 @@ class CourseCertificateServiceTest {
 
     private CourseCertificateRequestValidator validator;
     private CertificateIdService certificateIdService;
-    private ConstanciaRepository repository;
+    private CertificateGenerationRepository repository;
     private PdfGenerationService pdfGenerationService;
     private CourseCertificateService service;
     private Clock fixedClock;
@@ -50,7 +48,7 @@ class CourseCertificateServiceTest {
     void setUp() {
         validator = mock(CourseCertificateRequestValidator.class);
         certificateIdService = new CertificateIdService(new StoragePathSanitizer());
-        repository = mock(ConstanciaRepository.class);
+        repository = mock(CertificateGenerationRepository.class);
         pdfGenerationService = mock(PdfGenerationService.class);
         fixedClock = Clock.fixed(Instant.parse("2026-07-14T15:30:00Z"), ZoneId.of("UTC"));
         service = new CourseCertificateService(validator, certificateIdService, repository, pdfGenerationService,
@@ -62,9 +60,9 @@ class CourseCertificateServiceTest {
         CourseCertificateRequest request = validRequest();
         when(repository.existsApprovedByCertificateKey("22200275-32BGNYGF-1-26.1")).thenReturn(false);
         when(repository.nextVersion("22200275-32BGNYGF-1-26.1")).thenReturn(1);
-        when(pdfGenerationService.generateCourseCertificate(eq(request), any(CertificateGenerationMetadata.class)))
+        when(pdfGenerationService.generateCourseCertificate(any(CourseCertificateRequest.class), any(CertificateGenerationMetadata.class)))
                 .thenReturn(new byte[] { 1, 2, 3 });
-        when(repository.saveGeneration(eq(request), any(CertificateGenerationMetadata.class), any(byte[].class)))
+        when(repository.saveGeneration(any(CourseCertificateRequest.class), any(CertificateGenerationMetadata.class), any()))
                 .thenAnswer(invocation -> invocation.getArgument(1));
 
         CourseCertificateResponse response = service.generateCourseCertificate(request);
@@ -74,12 +72,12 @@ class CourseCertificateServiceTest {
         assertThat(response.getVersion()).isEqualTo(1);
         assertThat(response.getType()).isEqualTo(TipoConstancia.CURSO);
         assertThat(response.getStatus()).isEqualTo(EstadoConstancia.GENERADO);
-        assertThat(response.getTeacherFullName()).isEqualTo("Nombre completo docente");
+        assertThat(response.getTeacherFullName()).isEqualTo("Jos\u00e9 Mu\u00f1oz Pe\u00f1a");
         assertThat(response.getCourseCode()).isEqualTo("32BGNYGF");
         assertThat(response.getCourseSubject()).isEqualTo("Nombre del curso");
         assertThat(response.getSection()).isEqualTo("1");
         assertThat(response.getSemester()).isEqualTo("26.1");
-        assertThat(response.getGeneratedAt()).isEqualTo(LocalDateTime.of(2026, 7, 14, 15, 30));
+        assertThat(response.getGeneratedAt()).isEqualTo(Instant.parse("2026-07-14T15:30:00Z"));
         assertThat(response.getViewUrl()).isEqualTo(
                 "/api/v1/constancias/generaciones/22200275-32BGNYGF-1-26.1-v001/pdf");
         assertThat(response.getDownloadUrl()).isEqualTo(
@@ -87,7 +85,7 @@ class CourseCertificateServiceTest {
 
         ArgumentCaptor<CertificateGenerationMetadata> metadataCaptor =
                 ArgumentCaptor.forClass(CertificateGenerationMetadata.class);
-        verify(pdfGenerationService).generateCourseCertificate(eq(request), metadataCaptor.capture());
+        verify(pdfGenerationService).generateCourseCertificate(any(CourseCertificateRequest.class), metadataCaptor.capture());
         CertificateGenerationMetadata metadata = metadataCaptor.getValue();
         assertThat(metadata.getGenerationId()).isEqualTo("22200275-32BGNYGF-1-26.1-v001");
         assertThat(metadata.getCertificateKey()).isEqualTo("22200275-32BGNYGF-1-26.1");
@@ -140,7 +138,7 @@ class CourseCertificateServiceTest {
     @Test
     void validacionFallidaNoDebeGenerarPdfNiGuardar() {
         CourseCertificateRequest request = validRequest();
-        doThrow(new MissingRequiredFieldsException(List.of("teacher.email"))).when(validator).validate(request);
+        doThrow(new MissingRequiredFieldsException(List.of("teacher.email"))).when(validator).validate(any());
 
         assertThatThrownBy(() -> service.generateCourseCertificate(request))
                 .isInstanceOf(MissingRequiredFieldsException.class);
@@ -180,12 +178,12 @@ class CourseCertificateServiceTest {
 
         CourseCertificateResponse response = service.generateCourseCertificate(validRequest());
 
-        assertThat(response.getGeneratedAt()).isEqualTo(LocalDateTime.of(2026, 7, 14, 15, 30));
+        assertThat(response.getGeneratedAt()).isEqualTo(Instant.parse("2026-07-14T15:30:00Z"));
     }
 
     private CourseCertificateRequest validRequest() {
         return new CourseCertificateRequest(
-                new TeacherPayload("Nombre completo docente", "docente@unmsm.edu.pe", "22200275"),
+                new TeacherPayload("Jos\u00e9 Mu\u00f1oz Pe\u00f1a", "jmunoz@unmsm.edu.pe", "22200275"),
                 new CoursePayload("32BGNYGF", "Nombre del curso", "7", "1", "SW", "2023", "26.1"),
                 new IssuerPayload("moodle", "12345", "usuario@unmsm.edu.pe"));
     }

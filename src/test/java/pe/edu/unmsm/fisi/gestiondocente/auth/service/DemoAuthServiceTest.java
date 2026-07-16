@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import pe.edu.unmsm.fisi.gestiondocente.auth.dto.DemoLoginRequest;
 import pe.edu.unmsm.fisi.gestiondocente.auth.dto.DemoLoginResponse;
+import pe.edu.unmsm.fisi.gestiondocente.auth.exception.DemoUserNotFoundException;
 import pe.edu.unmsm.fisi.gestiondocente.usuario.dto.UsuarioSesionDto;
 import pe.edu.unmsm.fisi.gestiondocente.usuario.entity.RolUsuario;
 import pe.edu.unmsm.fisi.gestiondocente.usuario.mapper.UsuarioMapper;
@@ -63,7 +64,7 @@ class DemoAuthServiceTest {
     @Test
     void loginDebeRechazarEmailInexistente() {
         assertThatThrownBy(() -> demoAuthService.login(new DemoLoginRequest("noexiste@unmsm.edu.pe")))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(DemoUserNotFoundException.class)
                 .hasMessage("Usuario demo no encontrado");
     }
 

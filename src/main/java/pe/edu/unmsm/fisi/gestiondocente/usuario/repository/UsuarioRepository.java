@@ -12,51 +12,25 @@ import pe.edu.unmsm.fisi.gestiondocente.usuario.entity.Usuario;
 public class UsuarioRepository {
 
     private static final List<Usuario> USUARIOS_DEMO = List.of(
-            new Usuario(
-                    1L,
-                    "082026",
-                    "Juan Carlos Pérez Gómez",
-                    "jperez@unmsm.edu.pe",
-                    RolUsuario.DOCENTE,
-                    "Ingeniería de Software",
-                    "082026"
-            ),
-            new Usuario(
-                    2L,
-                    "082027",
-                    "María Elena Torres Rojas",
-                    "mtorres@unmsm.edu.pe",
-                    RolUsuario.DOCENTE,
-                    "Ingeniería de Software",
-                    "082027"
-            ),
-            new Usuario(
-                    3L,
-                    "082028",
-                    "Carlos Alberto Ramos Silva",
-                    "cramos@unmsm.edu.pe",
-                    RolUsuario.DOCENTE,
-                    "Ciencia de la Computación",
-                    "082028"
-            ),
+            new Usuario(1L, "082026", null, null, RolUsuario.DOCENTE, null, "082026"),
+            new Usuario(2L, "082027", null, null, RolUsuario.DOCENTE, null, "082027"),
+            new Usuario(3L, "082028", null, null, RolUsuario.DOCENTE, null, "082028"),
             new Usuario(
                     4L,
                     "DIR-ISW",
-                    "Director de Ingeniería de Software",
+                    "Director de Ingenier\u00eda de Software",
                     "director.software@unmsm.edu.pe",
                     RolUsuario.DIRECTOR,
-                    "Ingeniería de Software",
-                    null
-            ),
+                    "Ingenier\u00eda de Software",
+                    null),
             new Usuario(
                     5L,
                     "DIR-CC",
-                    "Director de Ciencia de la Computación",
+                    "Director de Ciencia de la Computaci\u00f3n",
                     "director.computacion@unmsm.edu.pe",
                     RolUsuario.DIRECTOR,
-                    "Ciencia de la Computación",
-                    null
-            ),
+                    "Ciencia de la Computaci\u00f3n",
+                    null),
             new Usuario(
                     6L,
                     "ADMIN-01",
@@ -64,12 +38,13 @@ public class UsuarioRepository {
                     "admin@unmsm.edu.pe",
                     RolUsuario.ADMIN,
                     null,
-                    null
-            )
+                    null)
     );
 
     public List<Usuario> findAll() {
-        return USUARIOS_DEMO;
+        return USUARIOS_DEMO.stream()
+                .map(UsuarioRepository::copyOf)
+                .toList();
     }
 
     public Optional<Usuario> findByEmail(String email) {
@@ -79,13 +54,11 @@ public class UsuarioRepository {
 
         String emailBuscado = email.trim();
 
-        for (Usuario usuario : USUARIOS_DEMO) {
-            if (usuario.getEmail().equalsIgnoreCase(emailBuscado)) {
-                return Optional.of(usuario);
-            }
-        }
-
-        return Optional.empty();
+        return USUARIOS_DEMO.stream()
+                .filter(usuario -> usuario.getEmail() != null)
+                .filter(usuario -> usuario.getEmail().equalsIgnoreCase(emailBuscado))
+                .findFirst()
+                .map(UsuarioRepository::copyOf);
     }
 
     public Optional<Usuario> findById(Long id) {
@@ -93,12 +66,20 @@ public class UsuarioRepository {
             return Optional.empty();
         }
 
-        for (Usuario usuario : USUARIOS_DEMO) {
-            if (usuario.getId().equals(id)) {
-                return Optional.of(usuario);
-            }
-        }
+        return USUARIOS_DEMO.stream()
+                .filter(usuario -> usuario.getId().equals(id))
+                .findFirst()
+                .map(UsuarioRepository::copyOf);
+    }
 
-        return Optional.empty();
+    private static Usuario copyOf(Usuario usuario) {
+        return new Usuario(
+                usuario.getId(),
+                usuario.getCodigo(),
+                usuario.getNombreCompleto(),
+                usuario.getEmail(),
+                usuario.getRol(),
+                usuario.getDepartamentoAcademico(),
+                usuario.getTeacherCode());
     }
 }

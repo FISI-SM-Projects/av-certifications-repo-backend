@@ -1,6 +1,10 @@
 package pe.edu.unmsm.fisi.gestiondocente.constancia.entity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+import pe.edu.unmsm.fisi.gestiondocente.constancia.serialization.LegacyInstantDeserializer;
 
 public class CertificateGenerationMetadata {
 
@@ -13,7 +17,8 @@ public class CertificateGenerationMetadata {
     private String courseCode;
     private String section;
     private String semester;
-    private LocalDateTime generatedAt;
+    @JsonDeserialize(using = LegacyInstantDeserializer.class)
+    private Instant generatedAt;
     private String requestFile;
     private String pdfFile;
 
@@ -22,7 +27,7 @@ public class CertificateGenerationMetadata {
 
     public CertificateGenerationMetadata(String generationId, String certificateKey, int version,
             TipoConstancia type, EstadoConstancia status, String teacherCode, String courseCode, String section,
-            String semester, LocalDateTime generatedAt, String requestFile, String pdfFile) {
+            String semester, Instant generatedAt, String requestFile, String pdfFile) {
         this.generationId = generationId;
         this.certificateKey = certificateKey;
         this.version = version;
@@ -109,11 +114,11 @@ public class CertificateGenerationMetadata {
         this.semester = semester;
     }
 
-    public LocalDateTime getGeneratedAt() {
+    public Instant getGeneratedAt() {
         return generatedAt;
     }
 
-    public void setGeneratedAt(LocalDateTime generatedAt) {
+    public void setGeneratedAt(Instant generatedAt) {
         this.generatedAt = generatedAt;
     }
 

@@ -13,6 +13,7 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CourseCertificate
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CoursePayload;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.IssuerPayload;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.TeacherPayload;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.InvalidRequestFieldsException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.MissingRequiredFieldsException;
 
 class CourseCertificateRequestValidatorTest {
@@ -22,6 +23,11 @@ class CourseCertificateRequestValidatorTest {
     @Test
     void solicitudCompletaDebeSerValida() {
         assertThatCode(() -> validator.validate(validRequest())).doesNotThrowAnyException();
+    }
+
+    @Test
+    void requestNuloDebeReportarObjetosObligatorios() {
+        assertMissingFields(null, "teacher", "course", "issuer");
     }
 
     @Test
@@ -88,12 +94,37 @@ class CourseCertificateRequestValidatorTest {
         assertMissingFields(request, "teacher.email", "course.section", "issuer.executed_by_email");
     }
 
+    @Test
+    void correoSinFormatoDebeSerCampoInvalido() {
+        CourseCertificateRequest request = validRequest();
+        request.getTeacher().setEmail("correo-sin-arroba");
+
+        assertInvalidFields(request, "teacher.email");
+    }
+
+    @Test
+    void campoSobreLimiteDebeSerCampoInvalido() {
+        CourseCertificateRequest request = validRequest();
+        request.getCourse().setCode("A".repeat(CertificateRequestValidationRules.COURSE_CODE_MAX + 1));
+
+        assertInvalidFields(request, "course.code");
+    }
+
     private void assertMissingFields(CourseCertificateRequest request, String... fields) {
         assertThatThrownBy(() -> validator.validate(request))
                 .isInstanceOfSatisfying(MissingRequiredFieldsException.class, exception ->
                         org.assertj.core.api.Assertions.assertThat(exception.getMissingFields())
                                 .containsExactly(fields))
                 .hasMessage(MissingRequiredFieldsException.DEFAULT_MESSAGE);
+    }
+
+    private void assertInvalidFields(CourseCertificateRequest request, String... fields) {
+        assertThatThrownBy(() -> validator.validate(request))
+                .isInstanceOfSatisfying(InvalidRequestFieldsException.class, exception ->
+                        org.assertj.core.api.Assertions.assertThat(exception.getInvalidFields())
+                                .extracting(InvalidRequestFieldsException.InvalidField::field)
+                                .containsExactly(fields))
+                .hasMessage(InvalidRequestFieldsException.DEFAULT_MESSAGE);
     }
 
     private static CourseCertificateRequest validRequest() {

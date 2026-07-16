@@ -3,6 +3,9 @@ package pe.edu.unmsm.fisi.gestiondocente.constancia.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -15,7 +18,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +45,7 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.PdfGenerationExcept
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.StorageException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.pdf.PdfBoxPdfGenerationService;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.pdf.PdfGenerationService;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.ConstanciaRepository;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.CertificateGenerationRepository;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.FileSystemConstanciaRepository;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.service.CertificateIdService;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.service.ConstanciaQueryService;
@@ -94,7 +96,7 @@ class CourseCertificateEndToEndTest {
                 .andExpect(jsonPath("$.version").value(1))
                 .andExpect(jsonPath("$.type").value("CURSO"))
                 .andExpect(jsonPath("$.status").value("GENERADO"))
-                .andExpect(jsonPath("$.generatedAt").value("2026-07-14T10:30:00"))
+                .andExpect(jsonPath("$.generatedAt").value("2026-07-14T10:30:00Z"))
                 .andExpect(jsonPath("$.viewUrl").value(
                         "/api/v1/constancias/generaciones/22200275-32BGNYGF-1-26.1-v001/pdf"))
                 .andExpect(jsonPath("$.downloadUrl").value(
@@ -285,23 +287,11 @@ class CourseCertificateEndToEndTest {
 
     @Test
     void errorStorageNoDebeDevolverExitoNiExponerRuta() throws Exception {
-        ConstanciaRepository failingStorageRepository = new ConstanciaRepository() {
-            @Override
-            public boolean existsApprovedByCertificateKey(String certificateKey) {
-                return false;
-            }
-
-            @Override
-            public int nextVersion(String certificateKey) {
-                return 1;
-            }
-
-            @Override
-            public CertificateGenerationMetadata saveGeneration(Object request,
-                    CertificateGenerationMetadata metadata, byte[] pdfBytes) {
-                throw new StorageException("C:\\ruta\\sensible\\metadata.json");
-            }
-        };
+        CertificateGenerationRepository failingStorageRepository = mock(CertificateGenerationRepository.class);
+        when(failingStorageRepository.existsApprovedByCertificateKey(any())).thenReturn(false);
+        when(failingStorageRepository.nextVersion(any())).thenReturn(1);
+        when(failingStorageRepository.saveGeneration(any(), any(), any()))
+                .thenThrow(new StorageException("C:\\ruta\\sensible\\metadata.json"));
         MockMvc failingStorageMockMvc = buildMockMvc(failingStorageRepository, new PdfBoxPdfGenerationService());
 
         failingStorageMockMvc.perform(post("/api/v1/constancias/curso")
@@ -322,9 +312,10 @@ class CourseCertificateEndToEndTest {
             for (String value : dangerousValues) {
                 mockMvc.perform(post("/api/v1/constancias/curso")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(validJsonWith(field, value)))
+                        .content(validJsonWith(field, value)))
                         .andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.message").value("La solicitud contiene identificadores inválidos"))
+                        .andExpect(jsonPath("$.message").value("La solicitud contiene campos invalidos"))
+                        .andExpect(jsonPath("$.invalidFields[0].field").exists())
                         .andExpect(content().string(not(containsString(tempDir.toString()))));
             }
         }
@@ -361,7 +352,7 @@ class CourseCertificateEndToEndTest {
                 .andExpect(jsonPath("$.length()").value(0));
 
         CertificateGenerationMetadata metadataWithoutPdf = generatedMetadata(1);
-        repository.saveGeneration(Map.of("request", "sin-pdf"), metadataWithoutPdf, null);
+        createMetadataOnlyGeneration(metadataWithoutPdf);
 
         mockMvc.perform(get("/api/v1/constancias/generaciones/22200275-32BGNYGF-1-26.1-v001/pdf"))
                 .andExpect(status().isNotFound())
@@ -374,7 +365,7 @@ class CourseCertificateEndToEndTest {
                 .content(json));
     }
 
-    private MockMvc buildMockMvc(ConstanciaRepository constanciaRepository,
+    private MockMvc buildMockMvc(CertificateGenerationRepository constanciaRepository,
             PdfGenerationService pdfGenerationService) {
         StoragePathSanitizer sanitizer = new StoragePathSanitizer();
         CourseCertificateService courseService = new CourseCertificateService(
@@ -414,7 +405,7 @@ class CourseCertificateEndToEndTest {
         assertThat(metadata.getCourseCode()).isEqualTo("32BGNYGF");
         assertThat(metadata.getSection()).isEqualTo("1");
         assertThat(metadata.getSemester()).isEqualTo("26.1");
-        assertThat(metadata.getGeneratedAt()).isEqualTo(LocalDateTime.of(2026, 7, 14, 10, 30));
+        assertThat(metadata.getGeneratedAt()).isEqualTo(Instant.parse("2026-07-14T10:30:00Z"));
 
         byte[] pdf = Files.readAllBytes(generationDirectory.resolve("certificate.pdf"));
         assertThat(pdf).isNotEmpty();
@@ -430,6 +421,15 @@ class CourseCertificateEndToEndTest {
                 .resolve("v" + String.format("%03d", version));
     }
 
+    private void createMetadataOnlyGeneration(CertificateGenerationMetadata metadata) throws Exception {
+        Path generationDirectory = generationDirectory(metadata.getVersion());
+        Files.createDirectories(generationDirectory);
+        objectMapper.writerWithDefaultPrettyPrinter()
+                .writeValue(generationDirectory.resolve("metadata.json").toFile(), metadata);
+        objectMapper.writerWithDefaultPrettyPrinter()
+                .writeValue(generationDirectory.resolve("request.json").toFile(), Map.of("request", "sin-pdf"));
+    }
+
     private CertificateGenerationMetadata generatedMetadata(int version) {
         return new CertificateGenerationMetadata(
                 "22200275-32BGNYGF-1-26.1-v" + String.format("%03d", version),
@@ -441,7 +441,7 @@ class CourseCertificateEndToEndTest {
                 "32BGNYGF",
                 "1",
                 "26.1",
-                LocalDateTime.of(2026, 7, 14, 10, 30),
+                Instant.parse("2026-07-14T10:30:00Z"),
                 "request.json",
                 "certificate.pdf");
     }

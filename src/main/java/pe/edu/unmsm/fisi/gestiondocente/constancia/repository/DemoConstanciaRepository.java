@@ -3,16 +3,16 @@ package pe.edu.unmsm.fisi.gestiondocente.constancia.repository;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.Constancia;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.EstadoConstancia;
 
-@Primary
 @Repository
-public class DemoConstanciaRepository implements ConstanciaRepository {
+public class DemoConstanciaRepository implements LegacyConstanciaRepository {
 
+    // Repositorio legacy usado solo por compatibilidad con pruebas y datos demo previos.
+    // Los perfiles consolidados deben obtener constancias desde FileSystemConstanciaRepository.
     @Override
     public List<Constancia> findByDocenteId(Long docenteId) {
         return List.of(

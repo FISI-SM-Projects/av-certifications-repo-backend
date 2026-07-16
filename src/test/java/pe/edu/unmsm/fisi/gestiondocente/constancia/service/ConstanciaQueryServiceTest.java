@@ -1,11 +1,12 @@
 package pe.edu.unmsm.fisi.gestiondocente.constancia.service;
 
+import java.time.Instant;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,16 +19,16 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.EstadoConstancia;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.TipoConstancia;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.CertificateGenerationNotFoundException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.CertificatePdfNotFoundException;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.ConstanciaRepository;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.CertificateGenerationRepository;
 
 class ConstanciaQueryServiceTest {
 
-    private ConstanciaRepository repository;
+    private CertificateGenerationRepository repository;
     private ConstanciaQueryService service;
 
     @BeforeEach
     void setUp() {
-        repository = mock(ConstanciaRepository.class);
+        repository = mock(CertificateGenerationRepository.class);
         service = new ConstanciaQueryService(repository);
     }
 
@@ -117,7 +118,7 @@ class ConstanciaQueryServiceTest {
                 "32BGNYGF",
                 "1",
                 "26.1",
-                LocalDateTime.of(2026, 7, 14, 10, 30),
+                Instant.parse("2026-07-14T10:30:00Z"),
                 "request.json",
                 "certificate.pdf");
     }

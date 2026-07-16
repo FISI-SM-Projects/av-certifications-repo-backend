@@ -1,21 +1,28 @@
 package pe.edu.unmsm.fisi.gestiondocente.docente.controller;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import pe.edu.unmsm.fisi.gestiondocente.constancia.service.ConstanciaQueryService;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -24,8 +31,16 @@ class DocenteControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @MockBean
+    private ConstanciaQueryService constanciaQueryService;
+
+    @BeforeEach
+    void setUp() {
+        when(constanciaQueryService.listLatestByTeacherCode(anyString())).thenReturn(List.of());
+    }
+
     @Test
-    void perfilDocenteDemoDebeMantenerContratoSprintUno() throws Exception {
+    void perfilDocenteDemoDebeMantenerDatosPersonalesYSinConstanciasDemo() throws Exception {
         mockMvc.perform(get("/api/v1/docentes/demo/perfil"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.docente.codigo").value("082026"))
@@ -34,8 +49,8 @@ class DocenteControllerTest {
                 .andExpect(jsonPath("$.docente.departamentoAcademico").value("Ingeniería de Software"))
                 .andExpect(jsonPath("$.docente.escuelaProfesional").doesNotExist())
                 .andExpect(jsonPath("$.constancias").isArray())
-                .andExpect(jsonPath("$.constancias.length()").value(2))
-                .andExpect(jsonPath("$.constancias[*].estado", containsInAnyOrder("GENERADO", "APROBADO")));
+                .andExpect(jsonPath("$.constancias.length()").value(0))
+                .andExpect(content().string(not(containsString("demo-2026-I.pdf"))));
     }
 
     @Test
@@ -90,7 +105,7 @@ class DocenteControllerTest {
                 .andExpect(jsonPath("$.docente.codigo").value("082026"))
                 .andExpect(jsonPath("$.docente.nombres").value("Juan Carlos"))
                 .andExpect(jsonPath("$.constancias").isArray())
-                .andExpect(jsonPath("$.constancias.length()").value(2))
+                .andExpect(jsonPath("$.constancias.length()").value(0))
                 .andExpect(jsonPath("$.docente.apellidos").value("Pérez Gómez"))
                 .andExpect(jsonPath("$.docente.departamentoAcademico").value("Ingeniería de Software"));
     }

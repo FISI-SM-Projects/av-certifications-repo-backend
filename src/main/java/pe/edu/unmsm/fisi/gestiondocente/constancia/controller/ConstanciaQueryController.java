@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.response.CertificateGenerationResponse;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.CertificatePdfNotFoundException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.service.ConstanciaQueryService;
 
 @RestController
@@ -52,6 +53,10 @@ public class ConstanciaQueryController {
     }
 
     private ResponseEntity<byte[]> pdfResponse(byte[] pdfBytes, String generationId, boolean attachment) {
+        if (pdfBytes == null) {
+            throw new CertificatePdfNotFoundException(generationId);
+        }
+
         ContentDisposition contentDisposition = attachment
                 ? ContentDisposition.attachment().filename(generationId + ".pdf").build()
                 : ContentDisposition.inline().filename(generationId + ".pdf").build();

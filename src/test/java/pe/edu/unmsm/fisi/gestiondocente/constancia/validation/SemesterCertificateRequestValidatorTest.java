@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.ExpectedCourseRequest;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.SemesterCertificateRequest;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.DuplicateExpectedCoursesException;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.InvalidRequestFieldsException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.MissingRequiredFieldsException;
 
 class SemesterCertificateRequestValidatorTest {
@@ -19,6 +21,11 @@ class SemesterCertificateRequestValidatorTest {
     @Test
     void solicitudCompletaDebeSerValida() {
         assertThatCode(() -> validator.validate(validRequest())).doesNotThrowAnyException();
+    }
+
+    @Test
+    void requestNuloDebeReportarCamposObligatorios() {
+        assertMissingFields(null, "teacher_code", "semester", "expected_courses");
     }
 
     @Test
@@ -93,6 +100,38 @@ class SemesterCertificateRequestValidatorTest {
                 "expected_courses[0].section",
                 "expected_courses[1].code",
                 "expected_courses[1].section");
+    }
+
+    @Test
+    void cursosDuplicadosDebenSerRechazadosDespuesDeNormalizar() {
+        SemesterCertificateRequest request = new SemesterCertificateRequest(
+                "22200275",
+                "26.1",
+                List.of(
+                        new ExpectedCourseRequest("curso-a", "1"),
+                        new ExpectedCourseRequest(" CURSO-A ", "1 ")));
+
+        assertThatThrownBy(() -> validator.validate(request))
+                .isInstanceOfSatisfying(DuplicateExpectedCoursesException.class, exception ->
+                        org.assertj.core.api.Assertions.assertThat(exception.getDuplicateCourses())
+                                .extracting(ExpectedCourseRequest::getCode, ExpectedCourseRequest::getSection)
+                                .containsExactly(org.assertj.core.api.Assertions.tuple("CURSO-A", "1")));
+    }
+
+    @Test
+    void listaSobreMaximoDebeSerInvalida() {
+        List<ExpectedCourseRequest> expectedCourses = new ArrayList<>();
+        for (int index = 0; index <= CertificateRequestValidationRules.EXPECTED_COURSES_MAX; index++) {
+            expectedCourses.add(new ExpectedCourseRequest("C" + index, "1"));
+        }
+
+        SemesterCertificateRequest request = new SemesterCertificateRequest("22200275", "26.1", expectedCourses);
+
+        assertThatThrownBy(() -> validator.validate(request))
+                .isInstanceOfSatisfying(InvalidRequestFieldsException.class, exception ->
+                        org.assertj.core.api.Assertions.assertThat(exception.getInvalidFields())
+                                .extracting(InvalidRequestFieldsException.InvalidField::field)
+                                .contains("expected_courses"));
     }
 
     private void assertMissingFields(SemesterCertificateRequest request, String... fields) {

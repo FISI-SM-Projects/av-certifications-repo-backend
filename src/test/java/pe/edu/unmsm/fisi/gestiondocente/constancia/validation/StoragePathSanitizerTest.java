@@ -19,8 +19,18 @@ class StoragePathSanitizerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "../", "..", "abc/def", "abc\\def", "", "   ", "abc\u0000def" })
+    @ValueSource(strings = {
+            "../", "..", "abc/def", "abc\\def", "", "   ", "abc\u0000def",
+            "abc:def", "abc*def", "abc?def", "abc\"def", "abc<def", "abc>def", "abc|def"
+    })
     void debeRechazarSegmentosPeligrosos(String value) {
+        assertThatThrownBy(() -> storagePathSanitizer.sanitizeSegment(value))
+                .isInstanceOf(InvalidStoragePathException.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "CON", "CON.txt", "NUL", "COM1", "LPT9", "CLOCK$", "abc.", "abc " })
+    void debeRechazarSegmentosInvalidosEnWindows(String value) {
         assertThatThrownBy(() -> storagePathSanitizer.sanitizeSegment(value))
                 .isInstanceOf(InvalidStoragePathException.class);
     }

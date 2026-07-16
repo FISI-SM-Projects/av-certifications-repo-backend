@@ -1,5 +1,7 @@
 package pe.edu.unmsm.fisi.gestiondocente.constancia.pdf;
 
+import java.time.Instant;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -8,7 +10,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -173,7 +174,7 @@ class PdfBoxPdfGenerationServiceTest {
                 "32BGNYGF",
                 "1",
                 "2026-I",
-                LocalDateTime.of(2026, 7, 14, 10, 30),
+                Instant.parse("2026-07-14T10:30:00Z"),
                 "request.json",
                 "certificate.pdf");
     }

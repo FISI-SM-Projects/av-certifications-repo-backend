@@ -1,5 +1,7 @@
 package pe.edu.unmsm.fisi.gestiondocente.constancia.controller;
 
+import java.time.Instant;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
@@ -10,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -71,7 +72,7 @@ class CourseCertificateControllerTest {
                 .andExpect(jsonPath("$.courseSubject").value("Nombre del curso"))
                 .andExpect(jsonPath("$.section").value("1"))
                 .andExpect(jsonPath("$.semester").value("26.1"))
-                .andExpect(jsonPath("$.generatedAt").value("2026-07-14T10:30:00"))
+                .andExpect(jsonPath("$.generatedAt").value("2026-07-14T10:30:00Z"))
                 .andExpect(jsonPath("$.viewUrl").value(
                         "/api/v1/constancias/generaciones/22200275-32BGNYGF-1-26.1-v001/pdf"))
                 .andExpect(jsonPath("$.downloadUrl").value(
@@ -179,7 +180,7 @@ class CourseCertificateControllerTest {
                 "Nombre del curso",
                 "1",
                 "26.1",
-                LocalDateTime.of(2026, 7, 14, 10, 30),
+                Instant.parse("2026-07-14T10:30:00Z"),
                 "/api/v1/constancias/generaciones/22200275-32BGNYGF-1-26.1-v001/pdf",
                 "/api/v1/constancias/generaciones/22200275-32BGNYGF-1-26.1-v001/download");
     }
