@@ -2,17 +2,15 @@ package pe.edu.unmsm.fisi.gestiondocente.docente.dto;
 
 import java.util.List;
 
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.ConstanciaDto;
-
 public class DocentePerfilResponse {
 
     private DocenteDto docente;
-    private List<ConstanciaDto> constancias;
+    private List<ConstanciaPerfilResponse> constancias;
 
     public DocentePerfilResponse() {
     }
 
-    public DocentePerfilResponse(DocenteDto docente, List<ConstanciaDto> constancias) {
+    public DocentePerfilResponse(DocenteDto docente, List<ConstanciaPerfilResponse> constancias) {
         this.docente = docente;
         this.constancias = constancias;
     }
@@ -25,11 +23,11 @@ public class DocentePerfilResponse {
         this.docente = docente;
     }
 
-    public List<ConstanciaDto> getConstancias() {
+    public List<ConstanciaPerfilResponse> getConstancias() {
         return constancias;
     }
 
-    public void setConstancias(List<ConstanciaDto> constancias) {
+    public void setConstancias(List<ConstanciaPerfilResponse> constancias) {
         this.constancias = constancias;
     }
 }

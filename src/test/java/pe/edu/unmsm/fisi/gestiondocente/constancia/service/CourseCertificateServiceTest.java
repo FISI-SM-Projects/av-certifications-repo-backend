@@ -3,7 +3,6 @@ package pe.edu.unmsm.fisi.gestiondocente.constancia.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -62,9 +61,9 @@ class CourseCertificateServiceTest {
         CourseCertificateRequest request = validRequest();
         when(repository.existsApprovedByCertificateKey("22200275-32BGNYGF-1-26.1")).thenReturn(false);
         when(repository.nextVersion("22200275-32BGNYGF-1-26.1")).thenReturn(1);
-        when(pdfGenerationService.generateCourseCertificate(eq(request), any(CertificateGenerationMetadata.class)))
+        when(pdfGenerationService.generateCourseCertificate(any(CourseCertificateRequest.class), any(CertificateGenerationMetadata.class)))
                 .thenReturn(new byte[] { 1, 2, 3 });
-        when(repository.saveGeneration(eq(request), any(CertificateGenerationMetadata.class), any(byte[].class)))
+        when(repository.saveGeneration(any(CourseCertificateRequest.class), any(CertificateGenerationMetadata.class), any()))
                 .thenAnswer(invocation -> invocation.getArgument(1));
 
         CourseCertificateResponse response = service.generateCourseCertificate(request);
@@ -74,7 +73,7 @@ class CourseCertificateServiceTest {
         assertThat(response.getVersion()).isEqualTo(1);
         assertThat(response.getType()).isEqualTo(TipoConstancia.CURSO);
         assertThat(response.getStatus()).isEqualTo(EstadoConstancia.GENERADO);
-        assertThat(response.getTeacherFullName()).isEqualTo("Nombre completo docente");
+        assertThat(response.getTeacherFullName()).isEqualTo("Jos\u00e9 Mu\u00f1oz Pe\u00f1a");
         assertThat(response.getCourseCode()).isEqualTo("32BGNYGF");
         assertThat(response.getCourseSubject()).isEqualTo("Nombre del curso");
         assertThat(response.getSection()).isEqualTo("1");
@@ -87,7 +86,7 @@ class CourseCertificateServiceTest {
 
         ArgumentCaptor<CertificateGenerationMetadata> metadataCaptor =
                 ArgumentCaptor.forClass(CertificateGenerationMetadata.class);
-        verify(pdfGenerationService).generateCourseCertificate(eq(request), metadataCaptor.capture());
+        verify(pdfGenerationService).generateCourseCertificate(any(CourseCertificateRequest.class), metadataCaptor.capture());
         CertificateGenerationMetadata metadata = metadataCaptor.getValue();
         assertThat(metadata.getGenerationId()).isEqualTo("22200275-32BGNYGF-1-26.1-v001");
         assertThat(metadata.getCertificateKey()).isEqualTo("22200275-32BGNYGF-1-26.1");
@@ -140,7 +139,7 @@ class CourseCertificateServiceTest {
     @Test
     void validacionFallidaNoDebeGenerarPdfNiGuardar() {
         CourseCertificateRequest request = validRequest();
-        doThrow(new MissingRequiredFieldsException(List.of("teacher.email"))).when(validator).validate(request);
+        doThrow(new MissingRequiredFieldsException(List.of("teacher.email"))).when(validator).validate(any());
 
         assertThatThrownBy(() -> service.generateCourseCertificate(request))
                 .isInstanceOf(MissingRequiredFieldsException.class);
@@ -185,7 +184,7 @@ class CourseCertificateServiceTest {
 
     private CourseCertificateRequest validRequest() {
         return new CourseCertificateRequest(
-                new TeacherPayload("Nombre completo docente", "docente@unmsm.edu.pe", "22200275"),
+                new TeacherPayload("Jos\u00e9 Mu\u00f1oz Pe\u00f1a", "jmunoz@unmsm.edu.pe", "22200275"),
                 new CoursePayload("32BGNYGF", "Nombre del curso", "7", "1", "SW", "2023", "26.1"),
                 new IssuerPayload("moodle", "12345", "usuario@unmsm.edu.pe"));
     }

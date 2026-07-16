@@ -322,9 +322,10 @@ class CourseCertificateEndToEndTest {
             for (String value : dangerousValues) {
                 mockMvc.perform(post("/api/v1/constancias/curso")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(validJsonWith(field, value)))
+                        .content(validJsonWith(field, value)))
                         .andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.message").value("La solicitud contiene identificadores inválidos"))
+                        .andExpect(jsonPath("$.message").value("La solicitud contiene campos invalidos"))
+                        .andExpect(jsonPath("$.invalidFields[0].field").exists())
                         .andExpect(content().string(not(containsString(tempDir.toString()))));
             }
         }
@@ -361,7 +362,7 @@ class CourseCertificateEndToEndTest {
                 .andExpect(jsonPath("$.length()").value(0));
 
         CertificateGenerationMetadata metadataWithoutPdf = generatedMetadata(1);
-        repository.saveGeneration(Map.of("request", "sin-pdf"), metadataWithoutPdf, null);
+        createMetadataOnlyGeneration(metadataWithoutPdf);
 
         mockMvc.perform(get("/api/v1/constancias/generaciones/22200275-32BGNYGF-1-26.1-v001/pdf"))
                 .andExpect(status().isNotFound())
@@ -428,6 +429,15 @@ class CourseCertificateEndToEndTest {
                 .resolve("22200275")
                 .resolve("32BGNYGF-1")
                 .resolve("v" + String.format("%03d", version));
+    }
+
+    private void createMetadataOnlyGeneration(CertificateGenerationMetadata metadata) throws Exception {
+        Path generationDirectory = generationDirectory(metadata.getVersion());
+        Files.createDirectories(generationDirectory);
+        objectMapper.writerWithDefaultPrettyPrinter()
+                .writeValue(generationDirectory.resolve("metadata.json").toFile(), metadata);
+        objectMapper.writerWithDefaultPrettyPrinter()
+                .writeValue(generationDirectory.resolve("request.json").toFile(), Map.of("request", "sin-pdf"));
     }
 
     private CertificateGenerationMetadata generatedMetadata(int version) {

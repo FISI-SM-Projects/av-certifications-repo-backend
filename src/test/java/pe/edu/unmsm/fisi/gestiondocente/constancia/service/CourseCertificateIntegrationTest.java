@@ -84,7 +84,7 @@ class CourseCertificateIntegrationTest {
 
     private CourseCertificateRequest validRequest() {
         return new CourseCertificateRequest(
-                new TeacherPayload("Nombre completo docente", "docente@unmsm.edu.pe", "22200275"),
+                new TeacherPayload("Jos\u00e9 Mu\u00f1oz Pe\u00f1a", "jmunoz@unmsm.edu.pe", "22200275"),
                 new CoursePayload("32BGNYGF", "Nombre del curso", "7", "1", "SW", "2023", "26.1"),
                 new IssuerPayload("moodle", "12345", "usuario@unmsm.edu.pe"));
     }

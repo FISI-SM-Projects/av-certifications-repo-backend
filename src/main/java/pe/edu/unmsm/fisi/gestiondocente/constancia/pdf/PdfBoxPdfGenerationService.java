@@ -3,6 +3,7 @@ package pe.edu.unmsm.fisi.gestiondocente.constancia.pdf;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.TextStyle;
@@ -53,7 +54,7 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
             writer.close();
             document.save(outputStream);
             return outputStream.toByteArray();
-        } catch (IOException exception) {
+        } catch (IOException | IllegalArgumentException exception) {
             throw new PdfGenerationException("No se pudo generar el PDF de constancia", exception);
         }
     }
@@ -74,7 +75,7 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
             writer.close();
             document.save(outputStream);
             return outputStream.toByteArray();
-        } catch (IOException exception) {
+        } catch (IOException | IllegalArgumentException exception) {
             throw new PdfGenerationException("No se pudo generar el PDF de constancia semestral", exception);
         }
     }
@@ -207,6 +208,11 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
     }
 
     private PDFont loadRegularFont(PDDocument document) throws IOException {
+        java.util.Optional<PDFont> classpathFont = loadClasspathFont(document, "/fonts/NotoSans-Regular.ttf");
+        if (classpathFont.isPresent()) {
+            return classpathFont.get();
+        }
+
         return loadFont(document, List.of(
                 "C:/Windows/Fonts/arial.ttf",
                 "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
@@ -215,6 +221,11 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
     }
 
     private PDFont loadBoldFont(PDDocument document) throws IOException {
+        java.util.Optional<PDFont> classpathFont = loadClasspathFont(document, "/fonts/NotoSans-Bold.ttf");
+        if (classpathFont.isPresent()) {
+            return classpathFont.get();
+        }
+
         return loadFont(document, List.of(
                 "C:/Windows/Fonts/arialbd.ttf",
                 "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
@@ -231,6 +242,16 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
         }
 
         return java.util.Optional.empty();
+    }
+
+    private java.util.Optional<PDFont> loadClasspathFont(PDDocument document, String resourcePath) throws IOException {
+        try (InputStream inputStream = PdfBoxPdfGenerationService.class.getResourceAsStream(resourcePath)) {
+            if (inputStream == null) {
+                return java.util.Optional.empty();
+            }
+
+            return java.util.Optional.of(PDType0Font.load(document, inputStream));
+        }
     }
 
     private static class PdfWriter {
@@ -256,7 +277,7 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
             List<String> lines = wrapText(text, boldFont, TITLE_FONT_SIZE, pageWidth - (2 * MARGIN));
             for (String line : lines) {
                 ensureSpace(LEADING);
-                float textWidth = boldFont.getStringWidth(line) / 1000F * TITLE_FONT_SIZE;
+                float textWidth = stringWidth(line, boldFont, TITLE_FONT_SIZE);
                 writeText(line, boldFont, TITLE_FONT_SIZE, (pageWidth - textWidth) / 2F, y);
                 y -= LEADING;
             }
@@ -303,38 +324,66 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
                     true);
 
             for (SemesterCertificateSource source : sources) {
-                writeSemesterTableRow(
-                        new String[] {
-                                source.getCourseCode(),
-                                source.getCourseSubject(),
-                                source.getSection(),
-                                source.getSchool(),
-                                source.getPlan(),
-                                source.getStatus().name()
-                        },
-                        widths,
-                        false);
+                String[] values = new String[] {
+                        source.getCourseCode(),
+                        source.getCourseSubject(),
+                        source.getSection(),
+                        source.getSchool(),
+                        source.getPlan(),
+                        source.getStatus().name()
+                };
+                if (needsNewPageForSemesterRow(values, widths, false)) {
+                    newPage();
+                    writeSemesterTableRow(
+                            new String[] { "Codigo", "Nombre del curso", "Seccion", "Escuela", "Plan", "Estado" },
+                            widths,
+                            true);
+                }
+                writeSemesterTableRow(values, widths, false);
             }
         }
 
         private void writeSemesterTableRow(String[] values, float[] widths, boolean header) throws IOException {
-            float rowHeight = 28F;
-            ensureSpace(rowHeight + 4F);
             PDFont font = header ? boldFont : regularFont;
             float fontSize = header ? 8.5F : 8F;
-            float x = MARGIN;
+            List<List<String>> wrappedCells = new ArrayList<>();
+            int maxLines = 1;
 
             for (int i = 0; i < values.length; i++) {
                 List<String> lines = wrapText(values[i], font, fontSize, widths[i] - 4F);
+                wrappedCells.add(lines);
+                maxLines = Math.max(maxLines, lines.size());
+            }
+
+            float rowHeight = Math.max(28F, (maxLines * 10F) + 8F);
+            ensureSpace(rowHeight + 4F);
+            float x = MARGIN;
+
+            for (int i = 0; i < values.length; i++) {
+                List<String> lines = wrappedCells.get(i);
                 float lineY = y;
-                for (int j = 0; j < Math.min(lines.size(), 2); j++) {
-                    writeText(lines.get(j), font, fontSize, x, lineY);
+                for (String line : lines) {
+                    writeText(line, font, fontSize, x, lineY);
                     lineY -= 10F;
                 }
                 x += widths[i];
             }
 
             y -= rowHeight;
+        }
+
+        private boolean needsNewPageForSemesterRow(String[] values, float[] widths, boolean header) throws IOException {
+            return y - semesterRowHeight(values, widths, header) < FOOTER_MARGIN + 24F;
+        }
+
+        private float semesterRowHeight(String[] values, float[] widths, boolean header) throws IOException {
+            PDFont font = header ? boldFont : regularFont;
+            float fontSize = header ? 8.5F : 8F;
+            int maxLines = 1;
+            for (int i = 0; i < values.length; i++) {
+                maxLines = Math.max(maxLines, wrapText(values[i], font, fontSize, widths[i] - 4F).size());
+            }
+            return Math.max(28F, (maxLines * 10F) + 8F);
         }
 
         void writeFooter(String text) throws IOException {
@@ -376,10 +425,11 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
         }
 
         private void writeText(String text, PDFont font, float fontSize, float x, float lineY) throws IOException {
+            String safeText = sanitizeForFont(text, font);
             contentStream.beginText();
             contentStream.setFont(font, fontSize);
             contentStream.newLineAtOffset(x, lineY);
-            contentStream.showText(text);
+            contentStream.showText(safeText);
             contentStream.endText();
         }
 
@@ -387,17 +437,19 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
             List<String> lines = new ArrayList<>();
             StringBuilder currentLine = new StringBuilder();
 
-            for (String word : text.split(" ")) {
-                String candidate = currentLine.isEmpty() ? word : currentLine + " " + word;
-                float width = font.getStringWidth(candidate) / 1000F * fontSize;
+            for (String word : safeText(text).split("\\s+")) {
+                for (String fragment : splitWordToFit(word, font, fontSize, maxWidth)) {
+                    String candidate = currentLine.isEmpty() ? fragment : currentLine + " " + fragment;
+                    float width = stringWidth(candidate, font, fontSize);
 
-                if (width <= maxWidth) {
-                    currentLine = new StringBuilder(candidate);
-                } else {
-                    if (!currentLine.isEmpty()) {
-                        lines.add(currentLine.toString());
+                    if (width <= maxWidth) {
+                        currentLine = new StringBuilder(candidate);
+                    } else {
+                        if (!currentLine.isEmpty()) {
+                            lines.add(currentLine.toString());
+                        }
+                        currentLine = new StringBuilder(fragment);
                     }
-                    currentLine = new StringBuilder(word);
                 }
             }
 
@@ -406,6 +458,60 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
             }
 
             return lines;
+        }
+
+        private List<String> splitWordToFit(String word, PDFont font, float fontSize, float maxWidth)
+                throws IOException {
+            if (word == null || word.isEmpty() || stringWidth(word, font, fontSize) <= maxWidth) {
+                return List.of(word == null ? "" : word);
+            }
+
+            List<String> fragments = new ArrayList<>();
+            StringBuilder current = new StringBuilder();
+            for (int offset = 0; offset < word.length(); ) {
+                int codePoint = word.codePointAt(offset);
+                String character = new String(Character.toChars(codePoint));
+                String candidate = current + character;
+                if (!current.isEmpty() && stringWidth(candidate, font, fontSize) > maxWidth) {
+                    fragments.add(current.toString());
+                    current = new StringBuilder(character);
+                } else {
+                    current.append(character);
+                }
+                offset += Character.charCount(codePoint);
+            }
+            if (!current.isEmpty()) {
+                fragments.add(current.toString());
+            }
+            return fragments;
+        }
+
+        private float stringWidth(String text, PDFont font, float fontSize) throws IOException {
+            return font.getStringWidth(sanitizeForFont(text, font)) / 1000F * fontSize;
+        }
+
+        private String sanitizeForFont(String text, PDFont font) throws IOException {
+            if (text == null || text.isEmpty()) {
+                return "";
+            }
+
+            StringBuilder sanitized = new StringBuilder();
+            for (int offset = 0; offset < text.length(); ) {
+                int codePoint = text.codePointAt(offset);
+                String character = new String(Character.toChars(codePoint));
+                try {
+                    font.getStringWidth(character);
+                    sanitized.append(character);
+                } catch (IllegalArgumentException exception) {
+                    sanitized.append('?');
+                }
+                offset += Character.charCount(codePoint);
+            }
+            return sanitized.toString();
+        }
+
+        private String safeText(String text) {
+            return text == null ? "" : text.trim();
         }
     }
 }

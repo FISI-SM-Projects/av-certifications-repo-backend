@@ -1,6 +1,7 @@
 package pe.edu.unmsm.fisi.gestiondocente.docente.repository;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
@@ -40,6 +41,26 @@ public class DocenteRepository {
                     "Ciencia de la Computación",
                     "Asociado",
                     "Nombrado"
+            ),
+            new Docente(
+                    4L,
+                    "22200275",
+                    "Jos\u00e9 Mu\u00f1oz",
+                    "Pe\u00f1a",
+                    "jmunoz@unmsm.edu.pe",
+                    "Aula Virtual Simulado",
+                    "Demo",
+                    "Simulado"
+            ),
+            new Docente(
+                    5L,
+                    "22200999",
+                    "Ana",
+                    "Torres Lima",
+                    "atorres@unmsm.edu.pe",
+                    "Aula Virtual Simulado",
+                    "Demo",
+                    "Simulado"
             )
     );
 
@@ -58,8 +79,10 @@ public class DocenteRepository {
     }
 
     public Optional<Docente> findByCodigo(String codigo) {
+        String normalizedCodigo = codigo == null ? "" : codigo.trim().toUpperCase(Locale.ROOT);
+
         return DOCENTES_DEMO.stream()
-                .filter(docente -> docente.getCodigo().equals(codigo))
+                .filter(docente -> docente.getCodigo().equalsIgnoreCase(normalizedCodigo))
                 .findFirst();
     }
 }

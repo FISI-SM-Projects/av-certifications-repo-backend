@@ -13,6 +13,8 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.EstadoConstancia;
 @Repository
 public class DemoConstanciaRepository implements ConstanciaRepository {
 
+    // Repositorio legacy usado solo por compatibilidad con pruebas y datos demo previos.
+    // Los perfiles consolidados deben obtener constancias desde FileSystemConstanciaRepository.
     @Override
     public List<Constancia> findByDocenteId(Long docenteId) {
         return List.of(

@@ -13,12 +13,17 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.ApprovedCertificate
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.CertificateGenerationNotFoundException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.CertificatePdfNotFoundException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.CertificateSourceInconsistencyException;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.DuplicateExpectedCoursesException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.GenerationAlreadyExistsException;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.InvalidPdfContentException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.InvalidStoragePathException;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.InvalidRequestFieldsException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.MissingExpectedCoursesException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.MissingRequiredFieldsException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.PdfGenerationException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.StorageException;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.TeacherIdentityMismatchException;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.TeacherNotFoundForCertificateException;
 
 @RestControllerAdvice(assignableTypes = {
         CourseCertificateController.class,
@@ -42,6 +47,14 @@ public class ConstanciaExceptionHandler {
                 .body(new MissingCoursesErrorResponse(exception.getMessage(), exception.getMissingCourses()));
     }
 
+    @ExceptionHandler(DuplicateExpectedCoursesException.class)
+    public ResponseEntity<DuplicateCoursesErrorResponse> handleDuplicateCourses(
+            DuplicateExpectedCoursesException exception) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new DuplicateCoursesErrorResponse(exception.getMessage(), exception.getDuplicateCourses()));
+    }
+
     @ExceptionHandler(CertificateSourceInconsistencyException.class)
     public ResponseEntity<Map<String, String>> handleSourceInconsistency(
             CertificateSourceInconsistencyException exception) {
@@ -56,6 +69,30 @@ public class ConstanciaExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new MissingFieldsErrorResponse(exception.getMessage(), exception.getMissingFields()));
+    }
+
+    @ExceptionHandler(InvalidRequestFieldsException.class)
+    public ResponseEntity<InvalidFieldsErrorResponse> handleInvalidFields(
+            InvalidRequestFieldsException exception) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new InvalidFieldsErrorResponse(exception.getMessage(), exception.getInvalidFields()));
+    }
+
+    @ExceptionHandler(TeacherIdentityMismatchException.class)
+    public ResponseEntity<Map<String, String>> handleTeacherIdentityMismatch(
+            TeacherIdentityMismatchException exception) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", exception.getMessage()));
+    }
+
+    @ExceptionHandler(TeacherNotFoundForCertificateException.class)
+    public ResponseEntity<Map<String, String>> handleTeacherNotFound(
+            TeacherNotFoundForCertificateException exception) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(Map.of("message", exception.getMessage()));
     }
 
     @ExceptionHandler(ApprovedCertificateAlreadyExistsException.class)
@@ -87,7 +124,22 @@ public class ConstanciaExceptionHandler {
                 .body(Map.of("message", "No se pudo generar el PDF de la constancia"));
     }
 
-    @ExceptionHandler({ StorageException.class, GenerationAlreadyExistsException.class })
+    @ExceptionHandler(GenerationAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleGenerationAlreadyExists(
+            GenerationAlreadyExistsException exception) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of("message", "La generacion de constancia ya existe"));
+    }
+
+    @ExceptionHandler(InvalidPdfContentException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidPdf(InvalidPdfContentException exception) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", "No se pudo generar un PDF valido de la constancia"));
+    }
+
+    @ExceptionHandler(StorageException.class)
     public ResponseEntity<Map<String, String>> handleStorage(RuntimeException exception) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -129,6 +181,44 @@ public class ConstanciaExceptionHandler {
 
         public List<?> getMissingCourses() {
             return missingCourses;
+        }
+    }
+
+    public static class DuplicateCoursesErrorResponse {
+
+        private final String message;
+        private final List<?> duplicateCourses;
+
+        public DuplicateCoursesErrorResponse(String message, List<?> duplicateCourses) {
+            this.message = message;
+            this.duplicateCourses = List.copyOf(duplicateCourses);
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public List<?> getDuplicateCourses() {
+            return duplicateCourses;
+        }
+    }
+
+    public static class InvalidFieldsErrorResponse {
+
+        private final String message;
+        private final List<?> invalidFields;
+
+        public InvalidFieldsErrorResponse(String message, List<?> invalidFields) {
+            this.message = message;
+            this.invalidFields = List.copyOf(invalidFields);
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public List<?> getInvalidFields() {
+            return invalidFields;
         }
     }
 }
