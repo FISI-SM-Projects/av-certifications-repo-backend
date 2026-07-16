@@ -3,6 +3,9 @@ package pe.edu.unmsm.fisi.gestiondocente.constancia.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -43,7 +46,7 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.PdfGenerationExcept
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.StorageException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.pdf.PdfBoxPdfGenerationService;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.pdf.PdfGenerationService;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.ConstanciaRepository;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.CertificateGenerationRepository;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.FileSystemConstanciaRepository;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.service.CertificateIdService;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.service.ConstanciaQueryService;
@@ -285,23 +288,11 @@ class CourseCertificateEndToEndTest {
 
     @Test
     void errorStorageNoDebeDevolverExitoNiExponerRuta() throws Exception {
-        ConstanciaRepository failingStorageRepository = new ConstanciaRepository() {
-            @Override
-            public boolean existsApprovedByCertificateKey(String certificateKey) {
-                return false;
-            }
-
-            @Override
-            public int nextVersion(String certificateKey) {
-                return 1;
-            }
-
-            @Override
-            public CertificateGenerationMetadata saveGeneration(Object request,
-                    CertificateGenerationMetadata metadata, byte[] pdfBytes) {
-                throw new StorageException("C:\\ruta\\sensible\\metadata.json");
-            }
-        };
+        CertificateGenerationRepository failingStorageRepository = mock(CertificateGenerationRepository.class);
+        when(failingStorageRepository.existsApprovedByCertificateKey(any())).thenReturn(false);
+        when(failingStorageRepository.nextVersion(any())).thenReturn(1);
+        when(failingStorageRepository.saveGeneration(any(), any(), any()))
+                .thenThrow(new StorageException("C:\\ruta\\sensible\\metadata.json"));
         MockMvc failingStorageMockMvc = buildMockMvc(failingStorageRepository, new PdfBoxPdfGenerationService());
 
         failingStorageMockMvc.perform(post("/api/v1/constancias/curso")
@@ -375,7 +366,7 @@ class CourseCertificateEndToEndTest {
                 .content(json));
     }
 
-    private MockMvc buildMockMvc(ConstanciaRepository constanciaRepository,
+    private MockMvc buildMockMvc(CertificateGenerationRepository constanciaRepository,
             PdfGenerationService pdfGenerationService) {
         StoragePathSanitizer sanitizer = new StoragePathSanitizer();
         CourseCertificateService courseService = new CourseCertificateService(

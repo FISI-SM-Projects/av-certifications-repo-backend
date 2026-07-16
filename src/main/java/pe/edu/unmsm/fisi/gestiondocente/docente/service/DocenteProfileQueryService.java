@@ -10,6 +10,7 @@ import pe.edu.unmsm.fisi.gestiondocente.docente.dto.ConstanciaPerfilResponse;
 import pe.edu.unmsm.fisi.gestiondocente.docente.dto.DocenteDto;
 import pe.edu.unmsm.fisi.gestiondocente.docente.dto.DocentePerfilResponse;
 import pe.edu.unmsm.fisi.gestiondocente.docente.entity.Docente;
+import pe.edu.unmsm.fisi.gestiondocente.docente.exception.DocenteNotFoundException;
 import pe.edu.unmsm.fisi.gestiondocente.docente.mapper.DocenteMapper;
 import pe.edu.unmsm.fisi.gestiondocente.docente.repository.DocenteRepository;
 
@@ -29,13 +30,13 @@ public class DocenteProfileQueryService {
 
     public DocentePerfilResponse obtenerPerfilDemo() {
         Docente docente = docenteRepository.findDemoDocente()
-                .orElseThrow(() -> new IllegalStateException("No se encontro el docente demo"));
+                .orElseThrow(() -> new DocenteNotFoundException("No se encontro el docente demo"));
         return construirPerfilDocente(docente);
     }
 
     public DocentePerfilResponse obtenerPerfilPorTeacherCode(String teacherCode) {
         Docente docente = docenteRepository.findByCodigo(teacherCode)
-                .orElseThrow(() -> new IllegalStateException("Docente no encontrado"));
+                .orElseThrow(() -> new DocenteNotFoundException("Docente no encontrado"));
         return construirPerfilDocente(docente);
     }
 

@@ -18,16 +18,16 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.EstadoConstancia;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.TipoConstancia;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.CertificateGenerationNotFoundException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.CertificatePdfNotFoundException;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.ConstanciaRepository;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.CertificateGenerationRepository;
 
 class ConstanciaQueryServiceTest {
 
-    private ConstanciaRepository repository;
+    private CertificateGenerationRepository repository;
     private ConstanciaQueryService service;
 
     @BeforeEach
     void setUp() {
-        repository = mock(ConstanciaRepository.class);
+        repository = mock(CertificateGenerationRepository.class);
         service = new ConstanciaQueryService(repository);
     }
 

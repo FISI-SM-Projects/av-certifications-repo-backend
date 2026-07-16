@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.ConstanciaDto;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.Constancia;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.mapper.ConstanciaMapper;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.ConstanciaRepository;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.LegacyConstanciaRepository;
 import pe.edu.unmsm.fisi.gestiondocente.periodo.entity.PeriodoAcademico;
 import pe.edu.unmsm.fisi.gestiondocente.periodo.repository.PeriodoAcademicoRepository;
 
@@ -16,11 +16,11 @@ public class ConstanciaService {
 
     private static final String PERIODO_NO_DEFINIDO = "Periodo no definido";
 
-    private final ConstanciaRepository constanciaRepository;
+    private final LegacyConstanciaRepository constanciaRepository;
     private final PeriodoAcademicoRepository periodoAcademicoRepository;
     private final ConstanciaMapper constanciaMapper;
 
-    public ConstanciaService(ConstanciaRepository constanciaRepository,
+    public ConstanciaService(LegacyConstanciaRepository constanciaRepository,
             PeriodoAcademicoRepository periodoAcademicoRepository, ConstanciaMapper constanciaMapper) {
         this.constanciaRepository = constanciaRepository;
         this.periodoAcademicoRepository = periodoAcademicoRepository;

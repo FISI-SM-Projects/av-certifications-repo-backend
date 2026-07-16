@@ -2,22 +2,20 @@ package pe.edu.unmsm.fisi.gestiondocente.constancia.service;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.response.CertificateGenerationResponse;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.CertificateGenerationMetadata;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.CertificateGenerationNotFoundException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.CertificatePdfNotFoundException;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.ConstanciaRepository;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.CertificateGenerationRepository;
 
 @Service
 public class ConstanciaQueryService {
 
-    private final ConstanciaRepository constanciaRepository;
+    private final CertificateGenerationRepository constanciaRepository;
 
-    public ConstanciaQueryService(
-            @Qualifier("fileSystemConstanciaRepository") ConstanciaRepository constanciaRepository) {
+    public ConstanciaQueryService(CertificateGenerationRepository constanciaRepository) {
         this.constanciaRepository = constanciaRepository;
     }
 

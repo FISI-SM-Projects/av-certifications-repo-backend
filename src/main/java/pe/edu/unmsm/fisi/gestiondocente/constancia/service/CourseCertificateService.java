@@ -4,7 +4,6 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CourseCertificateRequest;
@@ -16,7 +15,7 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.ApprovedCertificate
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.TeacherIdentityMismatchException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.TeacherNotFoundForCertificateException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.pdf.PdfGenerationService;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.ConstanciaRepository;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.CertificateGenerationRepository;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.CertificateRequestNormalizer;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.CourseCertificateRequestNormalizer;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.CourseCertificateRequestValidator;
@@ -32,7 +31,7 @@ public class CourseCertificateService {
     private final CourseCertificateRequestValidator validator;
     private final CourseCertificateRequestNormalizer normalizer;
     private final CertificateIdService certificateIdService;
-    private final ConstanciaRepository constanciaRepository;
+    private final CertificateGenerationRepository constanciaRepository;
     private final PdfGenerationService pdfGenerationService;
     private final DocenteRepository docenteRepository;
     private final CertificateKeyLockService lockService;
@@ -42,7 +41,7 @@ public class CourseCertificateService {
     public CourseCertificateService(CourseCertificateRequestValidator validator,
             CourseCertificateRequestNormalizer normalizer,
             CertificateIdService certificateIdService,
-            @Qualifier("fileSystemConstanciaRepository") ConstanciaRepository constanciaRepository,
+            CertificateGenerationRepository constanciaRepository,
             PdfGenerationService pdfGenerationService,
             DocenteRepository docenteRepository,
             CertificateKeyLockService lockService) {
@@ -52,7 +51,7 @@ public class CourseCertificateService {
 
     public CourseCertificateService(CourseCertificateRequestValidator validator,
             CertificateIdService certificateIdService,
-            ConstanciaRepository constanciaRepository,
+            CertificateGenerationRepository constanciaRepository,
             PdfGenerationService pdfGenerationService,
             Clock clock) {
         this(validator, new CourseCertificateRequestNormalizer(), certificateIdService, constanciaRepository,
@@ -62,7 +61,7 @@ public class CourseCertificateService {
     public CourseCertificateService(CourseCertificateRequestValidator validator,
             CourseCertificateRequestNormalizer normalizer,
             CertificateIdService certificateIdService,
-            ConstanciaRepository constanciaRepository,
+            CertificateGenerationRepository constanciaRepository,
             PdfGenerationService pdfGenerationService,
             DocenteRepository docenteRepository,
             Clock clock) {
@@ -73,7 +72,7 @@ public class CourseCertificateService {
     public CourseCertificateService(CourseCertificateRequestValidator validator,
             CourseCertificateRequestNormalizer normalizer,
             CertificateIdService certificateIdService,
-            ConstanciaRepository constanciaRepository,
+            CertificateGenerationRepository constanciaRepository,
             PdfGenerationService pdfGenerationService,
             DocenteRepository docenteRepository,
             CertificateKeyLockService lockService,

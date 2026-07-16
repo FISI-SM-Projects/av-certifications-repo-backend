@@ -65,7 +65,9 @@ public class DocenteRepository {
     );
 
     public List<Docente> findAll() {
-        return DOCENTES_DEMO;
+        return DOCENTES_DEMO.stream()
+                .map(DocenteRepository::copyOf)
+                .toList();
     }
 
     public Optional<Docente> findDemoDocente() {
@@ -75,6 +77,7 @@ public class DocenteRepository {
     public List<Docente> findByDepartamentoAcademico(String departamentoAcademico) {
         return DOCENTES_DEMO.stream()
                 .filter(docente -> docente.getDepartamentoAcademico().equals(departamentoAcademico))
+                .map(DocenteRepository::copyOf)
                 .toList();
     }
 
@@ -83,6 +86,19 @@ public class DocenteRepository {
 
         return DOCENTES_DEMO.stream()
                 .filter(docente -> docente.getCodigo().equalsIgnoreCase(normalizedCodigo))
+                .map(DocenteRepository::copyOf)
                 .findFirst();
+    }
+
+    private static Docente copyOf(Docente docente) {
+        return new Docente(
+                docente.getId(),
+                docente.getCodigo(),
+                docente.getNombres(),
+                docente.getApellidos(),
+                docente.getCorreoInstitucional(),
+                docente.getDepartamentoAcademico(),
+                docente.getCategoria(),
+                docente.getCondicion());
     }
 }

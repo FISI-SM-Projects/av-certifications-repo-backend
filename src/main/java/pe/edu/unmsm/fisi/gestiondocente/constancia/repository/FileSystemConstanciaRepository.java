@@ -30,7 +30,7 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.StorageException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.StoragePathSanitizer;
 
 @Repository("fileSystemConstanciaRepository")
-public class FileSystemConstanciaRepository implements ConstanciaRepository {
+public class FileSystemConstanciaRepository implements CertificateGenerationRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemConstanciaRepository.class);
     private static final String CERTIFICATES_DIR = "certificates";

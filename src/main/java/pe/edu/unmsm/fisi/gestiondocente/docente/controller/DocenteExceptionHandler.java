@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import pe.edu.unmsm.fisi.gestiondocente.docente.exception.DocenteNotFoundException;
+
 @RestControllerAdvice(assignableTypes = { DocenteController.class, DirectorDocenteController.class })
 public class DocenteExceptionHandler {
 
@@ -17,8 +19,8 @@ public class DocenteExceptionHandler {
                 .body(Map.of("message", exception.getMessage()));
     }
 
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Map<String, String>> handleNotFound(IllegalStateException exception) {
+    @ExceptionHandler(DocenteNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleNotFound(DocenteNotFoundException exception) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(Map.of("message", exception.getMessage()));

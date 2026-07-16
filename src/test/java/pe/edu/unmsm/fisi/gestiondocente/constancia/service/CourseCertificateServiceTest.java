@@ -32,7 +32,7 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.MissingRequiredFiel
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.PdfGenerationException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.StorageException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.pdf.PdfGenerationService;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.ConstanciaRepository;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.CertificateGenerationRepository;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.CourseCertificateRequestValidator;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.StoragePathSanitizer;
 
@@ -40,7 +40,7 @@ class CourseCertificateServiceTest {
 
     private CourseCertificateRequestValidator validator;
     private CertificateIdService certificateIdService;
-    private ConstanciaRepository repository;
+    private CertificateGenerationRepository repository;
     private PdfGenerationService pdfGenerationService;
     private CourseCertificateService service;
     private Clock fixedClock;
@@ -49,7 +49,7 @@ class CourseCertificateServiceTest {
     void setUp() {
         validator = mock(CourseCertificateRequestValidator.class);
         certificateIdService = new CertificateIdService(new StoragePathSanitizer());
-        repository = mock(ConstanciaRepository.class);
+        repository = mock(CertificateGenerationRepository.class);
         pdfGenerationService = mock(PdfGenerationService.class);
         fixedClock = Clock.fixed(Instant.parse("2026-07-14T15:30:00Z"), ZoneId.of("UTC"));
         service = new CourseCertificateService(validator, certificateIdService, repository, pdfGenerationService,
