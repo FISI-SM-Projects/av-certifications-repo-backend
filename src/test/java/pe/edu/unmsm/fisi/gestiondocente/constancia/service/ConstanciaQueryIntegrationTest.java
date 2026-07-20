@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.constancia.service;
+package pe.edu.unmsm.fisi.gestiondocente.service.constancia;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -14,16 +14,16 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CourseCertificateRequest;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CoursePayload;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.IssuerPayload;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.TeacherPayload;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.response.CertificateGenerationResponse;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.response.CourseCertificateResponse;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.pdf.PdfBoxPdfGenerationService;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.FileSystemConstanciaRepository;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.CourseCertificateRequestValidator;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.StoragePathSanitizer;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.CourseCertificateRequest;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.CoursePayload;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.IssuerPayload;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.TeacherPayload;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.response.CertificateGenerationResponse;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.response.CourseCertificateResponse;
+import pe.edu.unmsm.fisi.gestiondocente.service.pdf.PdfBoxPdfGenerationService;
+import pe.edu.unmsm.fisi.gestiondocente.repository.constancia.FileSystemConstanciaRepository;
+import pe.edu.unmsm.fisi.gestiondocente.validation.constancia.CourseCertificateRequestValidator;
+import pe.edu.unmsm.fisi.gestiondocente.validation.constancia.StoragePathSanitizer;
 
 class ConstanciaQueryIntegrationTest {
 

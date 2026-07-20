@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.constancia.validation;
+package pe.edu.unmsm.fisi.gestiondocente.validation.constancia;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -8,11 +8,11 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.ExpectedCourseRequest;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.SemesterCertificateRequest;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.DuplicateExpectedCoursesException;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.InvalidRequestFieldsException;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.MissingRequiredFieldsException;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.ExpectedCourseRequest;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.SemesterCertificateRequest;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.DuplicateExpectedCoursesException;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.InvalidRequestFieldsException;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.MissingRequiredFieldsException;
 
 class SemesterCertificateRequestValidatorTest {
 

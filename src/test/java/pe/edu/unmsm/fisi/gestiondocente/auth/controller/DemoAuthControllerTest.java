@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.auth.controller;
+package pe.edu.unmsm.fisi.gestiondocente.controller.auth;
 
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.containsString;

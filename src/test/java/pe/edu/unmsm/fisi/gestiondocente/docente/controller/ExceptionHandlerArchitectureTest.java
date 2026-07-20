@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.docente.controller;
+package pe.edu.unmsm.fisi.gestiondocente.controller.docente;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -8,7 +8,7 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import pe.edu.unmsm.fisi.gestiondocente.auth.controller.DemoAuthExceptionHandler;
+import pe.edu.unmsm.fisi.gestiondocente.controller.auth.DemoAuthExceptionHandler;
 
 class ExceptionHandlerArchitectureTest {
 

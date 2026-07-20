@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request;
+package pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

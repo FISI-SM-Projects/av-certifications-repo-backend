@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.constancia.validation;
+package pe.edu.unmsm.fisi.gestiondocente.validation.constancia;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.InvalidStoragePathException;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.InvalidStoragePathException;
 
 class StoragePathSanitizerTest {
 

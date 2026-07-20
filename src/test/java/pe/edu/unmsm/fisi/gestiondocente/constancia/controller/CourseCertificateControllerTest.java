@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.constancia.controller;
+package pe.edu.unmsm.fisi.gestiondocente.controller.constancia;
 
 import java.time.Instant;
 
@@ -24,15 +24,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CourseCertificateRequest;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.response.CourseCertificateResponse;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.EstadoConstancia;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.TipoConstancia;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.ApprovedCertificateAlreadyExistsException;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.MissingRequiredFieldsException;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.PdfGenerationException;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.StorageException;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.service.CourseCertificateService;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.CourseCertificateRequest;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.response.CourseCertificateResponse;
+import pe.edu.unmsm.fisi.gestiondocente.entity.constancia.EstadoConstancia;
+import pe.edu.unmsm.fisi.gestiondocente.entity.constancia.TipoConstancia;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.ApprovedCertificateAlreadyExistsException;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.MissingRequiredFieldsException;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.PdfGenerationException;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.StorageException;
+import pe.edu.unmsm.fisi.gestiondocente.service.constancia.CourseCertificateService;
 
 class CourseCertificateControllerTest {
 

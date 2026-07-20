@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.docente.controller;
+package pe.edu.unmsm.fisi.gestiondocente.controller.docente;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.everyItem;
@@ -22,7 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import pe.edu.unmsm.fisi.gestiondocente.constancia.service.ConstanciaQueryService;
+import pe.edu.unmsm.fisi.gestiondocente.service.constancia.ConstanciaQueryService;
 
 @SpringBootTest
 @AutoConfigureMockMvc

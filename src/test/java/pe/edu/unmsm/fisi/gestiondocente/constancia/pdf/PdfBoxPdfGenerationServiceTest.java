@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.constancia.pdf;
+package pe.edu.unmsm.fisi.gestiondocente.service.pdf;
 
 import java.time.Instant;
 
@@ -19,14 +19,14 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CourseCertificateRequest;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CoursePayload;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.IssuerPayload;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.TeacherPayload;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.CertificateGenerationMetadata;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.EstadoConstancia;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.TipoConstancia;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.PdfGenerationException;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.CourseCertificateRequest;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.CoursePayload;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.IssuerPayload;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.TeacherPayload;
+import pe.edu.unmsm.fisi.gestiondocente.entity.constancia.CertificateGenerationMetadata;
+import pe.edu.unmsm.fisi.gestiondocente.entity.constancia.EstadoConstancia;
+import pe.edu.unmsm.fisi.gestiondocente.entity.constancia.TipoConstancia;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.PdfGenerationException;
 
 class PdfBoxPdfGenerationServiceTest {
 

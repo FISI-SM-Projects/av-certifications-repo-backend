@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.constancia.controller;
+package pe.edu.unmsm.fisi.gestiondocente.controller.constancia;
 
 import java.time.Instant;
 
@@ -27,12 +27,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.response.CertificateGenerationResponse;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.EstadoConstancia;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.TipoConstancia;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.CertificateGenerationNotFoundException;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.CertificatePdfNotFoundException;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.service.ConstanciaQueryService;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.response.CertificateGenerationResponse;
+import pe.edu.unmsm.fisi.gestiondocente.entity.constancia.EstadoConstancia;
+import pe.edu.unmsm.fisi.gestiondocente.entity.constancia.TipoConstancia;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.CertificateGenerationNotFoundException;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.CertificatePdfNotFoundException;
+import pe.edu.unmsm.fisi.gestiondocente.service.constancia.ConstanciaQueryService;
 
 class ConstanciaQueryControllerTest {
 

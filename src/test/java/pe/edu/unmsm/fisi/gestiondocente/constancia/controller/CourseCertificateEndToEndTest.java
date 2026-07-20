@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.constancia.controller;
+package pe.edu.unmsm.fisi.gestiondocente.controller.constancia;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -38,20 +38,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.CertificateGenerationMetadata;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.EstadoConstancia;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.TipoConstancia;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.PdfGenerationException;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.StorageException;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.pdf.PdfBoxPdfGenerationService;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.pdf.PdfGenerationService;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.CertificateGenerationRepository;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.FileSystemConstanciaRepository;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.service.CertificateIdService;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.service.ConstanciaQueryService;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.service.CourseCertificateService;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.CourseCertificateRequestValidator;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.StoragePathSanitizer;
+import pe.edu.unmsm.fisi.gestiondocente.entity.constancia.CertificateGenerationMetadata;
+import pe.edu.unmsm.fisi.gestiondocente.entity.constancia.EstadoConstancia;
+import pe.edu.unmsm.fisi.gestiondocente.entity.constancia.TipoConstancia;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.PdfGenerationException;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.StorageException;
+import pe.edu.unmsm.fisi.gestiondocente.service.pdf.PdfBoxPdfGenerationService;
+import pe.edu.unmsm.fisi.gestiondocente.service.pdf.PdfGenerationService;
+import pe.edu.unmsm.fisi.gestiondocente.repository.constancia.CertificateGenerationRepository;
+import pe.edu.unmsm.fisi.gestiondocente.repository.constancia.FileSystemConstanciaRepository;
+import pe.edu.unmsm.fisi.gestiondocente.service.constancia.CertificateIdService;
+import pe.edu.unmsm.fisi.gestiondocente.service.constancia.ConstanciaQueryService;
+import pe.edu.unmsm.fisi.gestiondocente.service.constancia.CourseCertificateService;
+import pe.edu.unmsm.fisi.gestiondocente.validation.constancia.CourseCertificateRequestValidator;
+import pe.edu.unmsm.fisi.gestiondocente.validation.constancia.StoragePathSanitizer;
 
 class CourseCertificateEndToEndTest {
 
@@ -261,14 +261,14 @@ class CourseCertificateEndToEndTest {
         MockMvc failingPdfMockMvc = buildMockMvc(repository, new PdfGenerationService() {
             @Override
             public byte[] generateCourseCertificate(
-                    pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CourseCertificateRequest request,
+                    pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.CourseCertificateRequest request,
                     CertificateGenerationMetadata metadata) {
                 throw new PdfGenerationException("fallo interno del PDF");
             }
 
             @Override
             public byte[] generateSemesterCertificate(
-                    pe.edu.unmsm.fisi.gestiondocente.constancia.dto.SemesterCertificateSourceSummary sourceSummary,
+                    pe.edu.unmsm.fisi.gestiondocente.dto.constancia.SemesterCertificateSourceSummary sourceSummary,
                     CertificateGenerationMetadata metadata) {
                 throw new PdfGenerationException("fallo interno del PDF");
             }

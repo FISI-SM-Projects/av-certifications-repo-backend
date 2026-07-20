@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.constancia.service;
+package pe.edu.unmsm.fisi.gestiondocente.service.constancia;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -31,23 +31,23 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import pe.edu.unmsm.fisi.gestiondocente.constancia.controller.ConstanciaExceptionHandler;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.controller.ConstanciaQueryController;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.controller.CourseCertificateController;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.controller.SemesterCertificateController;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CourseCertificateRequest;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CoursePayload;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.IssuerPayload;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.TeacherPayload;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.response.CourseCertificateResponse;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.CertificateGenerationMetadata;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.EstadoConstancia;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.TipoConstancia;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.pdf.PdfBoxPdfGenerationService;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.FileSystemConstanciaRepository;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.CourseCertificateRequestValidator;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.SemesterCertificateRequestValidator;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.StoragePathSanitizer;
+import pe.edu.unmsm.fisi.gestiondocente.controller.constancia.ConstanciaExceptionHandler;
+import pe.edu.unmsm.fisi.gestiondocente.controller.constancia.ConstanciaQueryController;
+import pe.edu.unmsm.fisi.gestiondocente.controller.constancia.CourseCertificateController;
+import pe.edu.unmsm.fisi.gestiondocente.controller.constancia.SemesterCertificateController;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.CourseCertificateRequest;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.CoursePayload;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.IssuerPayload;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.TeacherPayload;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.response.CourseCertificateResponse;
+import pe.edu.unmsm.fisi.gestiondocente.entity.constancia.CertificateGenerationMetadata;
+import pe.edu.unmsm.fisi.gestiondocente.entity.constancia.EstadoConstancia;
+import pe.edu.unmsm.fisi.gestiondocente.entity.constancia.TipoConstancia;
+import pe.edu.unmsm.fisi.gestiondocente.service.pdf.PdfBoxPdfGenerationService;
+import pe.edu.unmsm.fisi.gestiondocente.repository.constancia.FileSystemConstanciaRepository;
+import pe.edu.unmsm.fisi.gestiondocente.validation.constancia.CourseCertificateRequestValidator;
+import pe.edu.unmsm.fisi.gestiondocente.validation.constancia.SemesterCertificateRequestValidator;
+import pe.edu.unmsm.fisi.gestiondocente.validation.constancia.StoragePathSanitizer;
 
 class SemesterCertificateIntegrationTest {
 
