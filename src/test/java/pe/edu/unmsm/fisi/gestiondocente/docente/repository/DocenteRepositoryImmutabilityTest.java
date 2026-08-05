@@ -1,10 +1,10 @@
-package pe.edu.unmsm.fisi.gestiondocente.docente.repository;
+package pe.edu.unmsm.fisi.gestiondocente.repository.docente;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import pe.edu.unmsm.fisi.gestiondocente.docente.entity.Docente;
+import pe.edu.unmsm.fisi.gestiondocente.entity.docente.Docente;
 
 class DocenteRepositoryImmutabilityTest {
 

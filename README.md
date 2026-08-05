@@ -31,13 +31,21 @@ http://localhost:8080
 
 `src/main/java/pe/edu/unmsm/fisi/gestiondocente/`
 
-- `auth/`: autenticacion demo y sesion simulada.
-- `common/`: utilidades y estructura comun.
+La estructura es layer-first: primero se ven las capas tecnicas y dentro de cada capa se agrupan los modulos funcionales como `auth`, `usuario`, `docente`, `constancia` y `periodo`.
+
+- `controller/`: endpoints HTTP y handlers por modulo.
+- `service/`: reglas de negocio, orquestacion y generacion PDF.
+- `repository/`: contratos y persistencia demo/filesystem.
+- `entity/`: entidades de dominio.
+- `dto/`: contratos de entrada y salida.
+- `mapper/`: conversion entre entidades y DTO.
+- `exception/`: excepciones de dominio.
+- `validation/`: normalizacion y validacion.
+- `serialization/`: compatibilidad de serializacion.
 - `config/`: configuracion Spring y CORS.
-- `constancia/`: generacion, consulta, PDF, validacion y persistencia de constancias.
-- `docente/`: perfiles y datos demo de docentes.
-- `periodo/`: soporte demo de periodos academicos.
-- `usuario/`: usuarios demo y roles.
+- `common/`: utilidades o respuestas comunes si aplican.
+
+`Usuario` representa cuenta, sesion y rol. `Docente` representa el perfil academico/profesional y es la fuente de datos como nombre, correo institucional y departamento.
 
 `src/main/resources/`
 

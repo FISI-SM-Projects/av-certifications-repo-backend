@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.usuario.entity;
+package pe.edu.unmsm.fisi.gestiondocente.entity.usuario;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

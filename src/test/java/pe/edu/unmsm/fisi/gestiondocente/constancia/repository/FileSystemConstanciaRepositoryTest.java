@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.constancia.repository;
+package pe.edu.unmsm.fisi.gestiondocente.repository.constancia;
 
 import java.time.Instant;
 
@@ -19,12 +19,12 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.CertificateGenerationMetadata;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.EstadoConstancia;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.TipoConstancia;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.GenerationAlreadyExistsException;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.StorageException;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.StoragePathSanitizer;
+import pe.edu.unmsm.fisi.gestiondocente.entity.constancia.CertificateGenerationMetadata;
+import pe.edu.unmsm.fisi.gestiondocente.entity.constancia.EstadoConstancia;
+import pe.edu.unmsm.fisi.gestiondocente.entity.constancia.TipoConstancia;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.GenerationAlreadyExistsException;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.StorageException;
+import pe.edu.unmsm.fisi.gestiondocente.validation.constancia.StoragePathSanitizer;
 
 class FileSystemConstanciaRepositoryTest {
 

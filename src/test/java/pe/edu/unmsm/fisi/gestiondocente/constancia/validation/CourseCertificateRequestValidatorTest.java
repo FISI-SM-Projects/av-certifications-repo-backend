@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.constancia.validation;
+package pe.edu.unmsm.fisi.gestiondocente.validation.constancia;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -9,12 +9,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CourseCertificateRequest;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CoursePayload;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.IssuerPayload;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.TeacherPayload;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.InvalidRequestFieldsException;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.MissingRequiredFieldsException;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.CourseCertificateRequest;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.CoursePayload;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.IssuerPayload;
+import pe.edu.unmsm.fisi.gestiondocente.dto.constancia.request.TeacherPayload;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.InvalidRequestFieldsException;
+import pe.edu.unmsm.fisi.gestiondocente.exception.constancia.MissingRequiredFieldsException;
 
 class CourseCertificateRequestValidatorTest {
 

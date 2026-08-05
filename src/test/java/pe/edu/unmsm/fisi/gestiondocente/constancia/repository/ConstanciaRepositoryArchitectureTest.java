@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.constancia.repository;
+package pe.edu.unmsm.fisi.gestiondocente.repository.constancia;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -9,9 +9,9 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Primary;
 
-import pe.edu.unmsm.fisi.gestiondocente.constancia.service.ConstanciaQueryService;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.service.CourseCertificateService;
-import pe.edu.unmsm.fisi.gestiondocente.constancia.service.SemesterCertificateService;
+import pe.edu.unmsm.fisi.gestiondocente.service.constancia.ConstanciaQueryService;
+import pe.edu.unmsm.fisi.gestiondocente.service.constancia.CourseCertificateService;
+import pe.edu.unmsm.fisi.gestiondocente.service.constancia.SemesterCertificateService;
 
 class ConstanciaRepositoryArchitectureTest {
 

@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.auth.service;
+package pe.edu.unmsm.fisi.gestiondocente.service.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -8,13 +8,13 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import pe.edu.unmsm.fisi.gestiondocente.auth.dto.DemoLoginRequest;
-import pe.edu.unmsm.fisi.gestiondocente.auth.dto.DemoLoginResponse;
-import pe.edu.unmsm.fisi.gestiondocente.auth.exception.DemoUserNotFoundException;
-import pe.edu.unmsm.fisi.gestiondocente.usuario.dto.UsuarioSesionDto;
-import pe.edu.unmsm.fisi.gestiondocente.usuario.entity.RolUsuario;
-import pe.edu.unmsm.fisi.gestiondocente.usuario.mapper.UsuarioMapper;
-import pe.edu.unmsm.fisi.gestiondocente.usuario.repository.UsuarioRepository;
+import pe.edu.unmsm.fisi.gestiondocente.dto.auth.DemoLoginRequest;
+import pe.edu.unmsm.fisi.gestiondocente.dto.auth.DemoLoginResponse;
+import pe.edu.unmsm.fisi.gestiondocente.exception.auth.DemoUserNotFoundException;
+import pe.edu.unmsm.fisi.gestiondocente.dto.usuario.UsuarioSesionDto;
+import pe.edu.unmsm.fisi.gestiondocente.entity.usuario.RolUsuario;
+import pe.edu.unmsm.fisi.gestiondocente.mapper.usuario.UsuarioMapper;
+import pe.edu.unmsm.fisi.gestiondocente.repository.usuario.UsuarioRepository;
 
 class DemoAuthServiceTest {
 
