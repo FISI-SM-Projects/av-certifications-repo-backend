@@ -27,23 +27,34 @@ El backend queda disponible por defecto en:
 http://localhost:8080
 ```
 
-## Estructura
+## Arquitectura
 
 `src/main/java/pe/edu/unmsm/fisi/gestiondocente/`
 
-La estructura es layer-first: primero se ven las capas tecnicas y dentro de cada capa se agrupan los modulos funcionales como `auth`, `usuario`, `docente`, `constancia` y `periodo`.
+Monolito modular por dominio con capas internas. Primero se ven los modulos funcionales y dentro de cada modulo se organizan sus capas tecnicas.
 
-- `controller/`: endpoints HTTP y handlers por modulo.
-- `service/`: reglas de negocio, orquestacion y generacion PDF.
-- `repository/`: contratos y persistencia demo/filesystem.
-- `entity/`: entidades de dominio.
-- `dto/`: contratos de entrada y salida.
-- `mapper/`: conversion entre entidades y DTO.
-- `exception/`: excepciones de dominio.
-- `validation/`: normalizacion y validacion.
-- `serialization/`: compatibilidad de serializacion.
-- `config/`: configuracion Spring y CORS.
-- `common/`: utilidades o respuestas comunes si aplican.
+- `web/`: controladores, DTOs HTTP y exception handlers.
+- `application/`: casos de uso, servicios, validadores, mappers y puertos.
+- `domain/`: entidades, estados, reglas y excepciones de dominio.
+- `infrastructure/`: repositorios, filesystem, PDF, serializacion y adaptadores tecnicos.
+- `shared/`: configuracion y utilidades transversales.
+
+Modulos actuales:
+
+- `shared`
+- `auth`
+- `usuario`
+- `docente`
+- `periodo`
+- `constancia`
+
+Modulos previstos:
+
+- `curso`
+- `cargadocente`
+- `integracionaulavirtual`
+- `revision`
+- `auditoria`
 
 `Usuario` representa cuenta, sesion y rol. `Docente` representa el perfil academico/profesional y es la fuente de datos como nombre, correo institucional y departamento.
 
