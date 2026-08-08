@@ -31,12 +31,16 @@ http://localhost:8080
 
 `src/main/java/pe/edu/unmsm/fisi/gestiondocente/`
 
-Monolito modular por dominio con capas internas. Primero se ven los modulos funcionales y dentro de cada modulo se organizan sus capas tecnicas.
+Monolito modular por dominio con capas clasicas internas. Se eligio esta estructura para que nuevos mantenedores ubiquen rapido controladores, servicios, repositorios, entidades y DTOs dentro de cada modulo funcional.
 
-- `web/`: controladores, DTOs HTTP y exception handlers.
-- `application/`: casos de uso, servicios, validadores, mappers y puertos.
-- `domain/`: entidades, estados, reglas y excepciones de dominio.
-- `infrastructure/`: repositorios, filesystem, PDF, serializacion y adaptadores tecnicos.
+- `controller/`: endpoints REST y exception handlers.
+- `service/`: logica de aplicacion y servicios de negocio.
+- `repository/`: acceso a datos, filesystem o persistencia.
+- `entity/`: entidades, enums y objetos del dominio persistente/simple.
+- `dto/`: contratos de entrada y salida.
+- `mapper/`: conversion entre entidades y DTOs.
+- `validation/`: validaciones de entrada y reglas de solicitud.
+- `serialization/`: serializacion tecnica especifica del modulo.
 - `shared/`: configuracion y utilidades transversales.
 
 Modulos actuales:
