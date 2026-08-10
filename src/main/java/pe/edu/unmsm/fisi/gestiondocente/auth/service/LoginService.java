@@ -36,20 +36,13 @@ public class LoginService {
         String username = request.username() != null ? request.username().trim() : "";
         String password = request.password() != null ? request.password() : "";
 
-        if (username.isEmpty()) {
-            throw new IllegalArgumentException("El nombre de usuario es obligatorio");
-        }
-        if (password.isEmpty()) {
-            throw new IllegalArgumentException("La contraseña es obligatoria");
-        }
-
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, password)
             );
 
             String token = jwtService.generateToken(authentication.getName());
-            return new LoginResponse(token, jwtService.getJwtExpiration());
+            return new LoginResponse(token);
 
         } catch (BadCredentialsException e) {
             log.warn("Credenciales inválidas para el usuario: {}", username);

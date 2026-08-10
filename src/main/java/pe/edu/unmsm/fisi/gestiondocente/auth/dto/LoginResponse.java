@@ -1,11 +1,10 @@
 package pe.edu.unmsm.fisi.gestiondocente.auth.dto;
 
-public record LoginResponse (
+public record LoginResponse(
     String token,
-    String type,
-    long expiresIn
+    String type
 ) {
-    public LoginResponse(String token, long expiresIn) {
-        this(token, "Bearer", expiresIn);
+    public LoginResponse(String token) {
+        this(token, "Bearer");
     }
 }

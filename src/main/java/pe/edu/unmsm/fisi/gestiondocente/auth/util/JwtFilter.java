@@ -47,23 +47,20 @@ public class JwtFilter  extends OncePerRequestFilter {
         try {
             final String username = jwtService.extractUsername(jwt);
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null){
-                if (jwtService.isTokenValid(jwt, username)) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            username, null, Collections.emptyList()
-                    );
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                }
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        username, null, Collections.emptyList()
+                );
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         } catch (ExpiredJwtException e) {
-            logger.warn("El token JWT ha expirado: " + e.
-                    getMessage());
+            logger.warn("El token JWT ha expirado: " + e.getMessage());
+            request.setAttribute("jwt_error", "Token expirado");
         } catch (SignatureException | MalformedJwtException e) {
-            logger.warn("Token JWT inválido o corrupto: " + e.
-                    getMessage());
+            logger.warn("Token JWT inválido o corrupto: " + e.getMessage());
+            request.setAttribute("jwt_error", "Token invalido");
         } catch (Exception e) {
-            logger.error("Error no controlado al procesar JWT: " +
-                    e.getMessage(), e);
+            logger.error("Error no controlado al procesar JWT: " + e.getMessage(), e);
         }
 
         filterChain.doFilter(request, response);

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -27,13 +28,21 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
 
-        Map<String, Object> body = Map.of(
-                "timestamp", LocalDateTime.now().toString(),
-                "status", HttpStatus.UNAUTHORIZED.value(),
-                "error", "Unauthorized",
-                "message", "No autorizado",
-                "path", request.getRequestURI()
-        );
+        String jwtError = (String) request.getAttribute("jwt_error");
+        String message;
+
+        if (jwtError != null) {
+            message = jwtError;
+        } else {
+            message = "No autorizad: Se requiere un token JWT válido";
+        }
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now().toString());
+        body.put("status", HttpStatus.UNAUTHORIZED.value());
+        body.put("error", "Unauthorized");
+        body.put("message", message);
+        body.put("path", request.getRequestURI());
 
         objectMapper.writeValue(response.getOutputStream(), body);
     }
