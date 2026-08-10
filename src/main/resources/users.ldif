@@ -1,0 +1,46 @@
+dn: ou=Facultad de Ingenieria de Sistemas e Informatica,dc=unmsm,dc=edu,dc=pe
+objectClass: top
+objectClass: organizationalUnit
+ou: Facultad de Ingenieria de Sistemas e Informatica
+
+dn: ou=Docente Sistemas,ou=Facultad de Ingenieria de Sistemas e Informatica,dc=unmsm,dc=edu,dc=pe
+objectClass: top
+objectClass: organizationalUnit
+ou: Docente Sistemas
+
+dn: uid=lmotaa,ou=Docente Sistemas,ou=Facultad de Ingenieria de Sistemas e Informatica,dc=unmsm,dc=edu,dc=pe
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: lmotaa
+cn: LAZARO FLORIAN MOTA ALVA
+sn: MOTA ALVA
+givenName: LAZARO FLORIAN
+mail: lmotaa@unmsm.edu.pe
+userPassword: lmotaa
+
+dn: uid=lalarconl,ou=Docente Sistemas,ou=Facultad de Ingenieria de Sistemas e Informatica,dc=unmsm,dc=edu,dc=pe
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: lalarconl
+cn: LUIS ALBERTO ALARCON LOAYZA
+sn: ALARCON LOAYZA
+givenName: LUIS ALBERTO
+mail: lalarconl@unmsm.edu.pe
+userPassword: lalarconl
+
+dn: uid=cnavarrod,ou=Docente Sistemas,ou=Facultad de Ingenieria de Sistemas e Informatica,dc=unmsm,dc=edu,dc=pe
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: cnavarrod
+cn: CARLOS EDMUNDO NAVARRO DEPAZ
+sn: NAVARRO DEPAZ
+givenName: CARLOS EDMUNDO
+mail: cnavarrod@unmsm.edu.pe
+userPassword: cnavarrod
+

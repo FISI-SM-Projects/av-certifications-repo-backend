@@ -2,6 +2,7 @@ package pe.edu.unmsm.fisi.gestiondocente.auth.controller;
 
 import java.util.List;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +14,7 @@ import pe.edu.unmsm.fisi.gestiondocente.auth.dto.DemoLoginResponse;
 import pe.edu.unmsm.fisi.gestiondocente.auth.service.DemoAuthService;
 import pe.edu.unmsm.fisi.gestiondocente.usuario.dto.UsuarioSesionDto;
 
+@Profile("demo")
 @RestController
 @RequestMapping("/api/v1/auth")
 public class DemoAuthController {
