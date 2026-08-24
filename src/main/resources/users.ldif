@@ -8,6 +8,21 @@ objectClass: top
 objectClass: organizationalUnit
 ou: Docente Sistemas
 
+dn: ou=Oficina Sistemas,ou=Facultad de Ingenieria de Sistemas e Informatica,dc=unmsm,dc=edu,dc=pe
+objectClass: top
+objectClass: organizationalUnit
+ou: Oficina Sistemas
+
+dn: uid=aulavirtual.fisi,ou=Oficina Sistemas,ou=Facultad de Ingenieria de Sistemas e Informatica,dc=unmsm,dc=edu,dc=pe
+objectClass: top
+objectClass: inetOrgPerson
+uid: aulavirtual.fisi
+cn: AULA VIRTUAL FISI
+sn: FISI
+givenName: AULA VIRTUAL
+mail: aulavirtual.fisi@unmsm.edu.pe
+userPassword: aulavirtual.fisi
+
 dn: uid=lmotaa,ou=Docente Sistemas,ou=Facultad de Ingenieria de Sistemas e Informatica,dc=unmsm,dc=edu,dc=pe
 objectClass: top
 objectClass: person

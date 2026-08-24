@@ -13,8 +13,8 @@ public interface InstitutionalAccountRepository extends JpaRepository<Institutio
 
     @Query("SELECT DISTINCT a FROM InstitutionalAccount a " +
            "JOIN FETCH a.person p " +
-           "LEFT JOIN FETCH p.personRoles pr " +
-           "LEFT JOIN FETCH pr.role r " +
+           "LEFT JOIN FETCH p.personSystemRoles pr " +
+           "LEFT JOIN FETCH pr.systemRole r " +
            "WHERE a.ldapUid = :ldapUid")
     Optional<InstitutionalAccount> findByLdapUid(@Param("ldapUid") String ldapUid);
 }

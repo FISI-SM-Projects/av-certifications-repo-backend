@@ -17,9 +17,12 @@ public class PersonController {
     private final PersonService personService;
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('ROLE_ADMIN')")
-    public Person getUserById(@PathVariable Long id){
-        return personService.getUser(id);
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String getUserById(@PathVariable Long id){
+        return "Autorizado como Admin";
     }
+//    public Person getUserById(@PathVariable Long id){
+//        return personService.getUser(id);
+//    }
 
 }

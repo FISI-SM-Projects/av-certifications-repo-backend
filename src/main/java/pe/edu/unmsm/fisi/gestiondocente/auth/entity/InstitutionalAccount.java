@@ -2,6 +2,8 @@ package pe.edu.unmsm.fisi.gestiondocente.auth.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,7 +15,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Entity
-@Table(name = "cuenta_institucional", schema = "auth")
+@Table(name = "institutional_account")
 @Getter
 @Setter
 @ToString(exclude = "person")
@@ -29,44 +31,39 @@ public class InstitutionalAccount implements UserDetails {
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "persona_id", nullable = false)
+    @JoinColumn(name = "person_id", nullable = false)
     private Person person;
 
-    @Column(name = "uid_ldap", nullable = false, unique = true, length = 100)
+    @Column(name = "ldap_uid", nullable = false, unique = true, length = 100)
     private String ldapUid;
 
-    @Column(name = "correo_institucional", nullable = false, unique = true, length = 180)
+    @Column(name = "institutional_email", nullable = false, unique = true, length = 180)
     private String institutionalEmail;
 
-    @Column(name = "dn_ldap", length = 500)
-    private String ldapDn;
+    @Column(name = "main", nullable = false)
+    private Boolean main;
 
-    @Column(name = "es_principal", nullable = false)
-    private Boolean isPrincipal;
+    @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(name = "account_status", nullable = false, length = 30)
+    private AccountStatus accountStatus;
 
-    @Column(name = "estado_cuenta", nullable = false, length = 30)
-    private String accountStatus;
-
-    @Column(name = "creado_en", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "actualizado_en", nullable = false)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (person == null || person.getPersonRoles() == null) {
+        if (person == null || person.getPersonSystemRoles() == null) {
             return Collections.emptyList();
         }
 
-        LocalDate today = LocalDate.now();
-
-        return person.getPersonRoles().stream()
-                .filter(pr -> pr.getRole() != null && Boolean.TRUE.equals(pr.getRole().getActive()))
-                .filter(pr -> pr.getStartDate() != null && !pr.getStartDate().isAfter(today))
-                .filter(pr -> pr.getEndDate() == null || !pr.getEndDate().isBefore(today))
-                .map(pr -> new SimpleGrantedAuthority(pr.getRole().getCode()))
+        return person.getPersonSystemRoles().stream()
+                .filter(pr -> pr.getSystemRole() != null && Boolean.TRUE.equals(pr.getSystemRole().getActive()))
+                .map(pr -> new SimpleGrantedAuthority(pr.getSystemRole().getCode().name()))
                 .toList();
     }
 
@@ -87,7 +84,7 @@ public class InstitutionalAccount implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return !"BLOQUEADA".equalsIgnoreCase(this.accountStatus);
+        return (this.accountStatus != AccountStatus.SUSPENDIDO && this.accountStatus != AccountStatus.ELIMINADO);
     }
 
     @Override
@@ -97,7 +94,7 @@ public class InstitutionalAccount implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return "ACTIVA".equalsIgnoreCase(this.accountStatus) &&
-                (this.person != null && "ACTIVA".equalsIgnoreCase(this.person.getRegisterState()));
+        return this.accountStatus == AccountStatus.ACTIVO &&
+                (this.person != null && this.person.getRegisterState() == AccountStatus.ACTIVO);
     }
 }
