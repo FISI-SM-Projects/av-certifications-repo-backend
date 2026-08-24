@@ -14,7 +14,9 @@ import pe.edu.unmsm.fisi.gestiondocente.auth.entity.InstitutionalAccount;
 import pe.edu.unmsm.fisi.gestiondocente.auth.exception.InvalidCredentialsException;
 import pe.edu.unmsm.fisi.gestiondocente.auth.repository.InstitutionalAccountRepository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class LoginService {
@@ -65,7 +67,14 @@ public class LoginService {
                     .map(GrantedAuthority::getAuthority)
                     .toList();
 
-            String token = jwtService.generateToken(account.getUsername(), roles);
+            Map<String, Object> extraClaims = new HashMap<>();
+            extraClaims.put("roles", roles);
+
+            if (account.getPerson() != null){
+                extraClaims.put("personId", account.getPerson().getId());
+            }
+
+            String token = jwtService.generateToken(extraClaims, account.getUsername());
 
             return new LoginResponse(token);
 

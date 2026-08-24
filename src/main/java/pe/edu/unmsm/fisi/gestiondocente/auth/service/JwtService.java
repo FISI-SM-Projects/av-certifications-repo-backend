@@ -37,33 +37,14 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(String username) {
-        return generateToken(new HashMap<>(), username);
-    }
-
     public String generateToken(Map<String, Object> extraClaims, String username) {
         return Jwts.builder()
-                .claims(extraClaims)
                 .subject(username)
+                .claims(extraClaims != null ? extraClaims : new HashMap<>())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSignInKey())
                 .compact();
-    }
-
-    public String generateToken(String username, List<String> roles){
-        return Jwts.builder()
-                .subject(username)
-                .claim("roles", roles)
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
-                .signWith(getSignInKey())
-                .compact();
-    }
-
-    public boolean isTokenValid(String token, String username) {
-        final String tokenUsername = extractUsername(token);
-        return (tokenUsername.equals(username));
     }
 
     private Claims extractAllClaims(String token) {

@@ -17,7 +17,7 @@ public class PersonController {
     private final PersonService personService;
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public String getUserById(@PathVariable Long id){
         return "Autorizado como Admin";
     }

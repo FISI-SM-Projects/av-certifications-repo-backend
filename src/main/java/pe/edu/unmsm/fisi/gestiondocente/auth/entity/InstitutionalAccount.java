@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "institutional_account")
@@ -62,9 +63,11 @@ public class InstitutionalAccount implements UserDetails {
         }
 
         return person.getPersonSystemRoles().stream()
-                .filter(pr -> pr.getSystemRole() != null && Boolean.TRUE.equals(pr.getSystemRole().getActive()))
-                .map(pr -> new SimpleGrantedAuthority(pr.getSystemRole().getCode().name()))
-                .toList();
+                .filter(pr -> Boolean.TRUE.equals(pr.getActive())
+                        && pr.getSystemRole() != null
+                        && Boolean.TRUE.equals(pr.getSystemRole().getActive()))
+                .map(pr -> new SimpleGrantedAuthority("ROLE_" + pr.getSystemRole().getCode().name()))
+                .collect(Collectors.toSet());
     }
 
     @Override
