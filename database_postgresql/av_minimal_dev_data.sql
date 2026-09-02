@@ -1,17 +1,8 @@
+\c av_certifications_db;
+
 BEGIN;
 
 -- 1. Catálogos Base
-INSERT INTO "document_type"
-("code", "name", "description", "min_length", "max_length", "regex", "active")
-VALUES
-('DNI', 'Documento Nacional de Identidad', 'DNI Perú (8 dígitos)', 8, 8, '^[0-9]{8}$', true);
-
-INSERT INTO "contact_type"
-("code", "name", "description", "visibility_level", "active")
-VALUES
-('EMAIL_PERS', 'Correo Personal', 'Correo electrónico no institucional', 'INTERNO', true),
-('PHONE_MOB', 'Celular', 'Número de telefonía móvil', 'INTERNO', true);
-
 INSERT INTO "system_role" ("code", "name", "description", "active")
 VALUES
 ('ADMIN', 'Administrador', 'Acceso total al sistema de certificación', true),
@@ -30,24 +21,14 @@ VALUES
 
 
 -- 2. Personas (Admin, Docente)
-INSERT INTO "person" ("first_name", "paternal_last_name", "maternal_last_name")
+INSERT INTO "person" ("first_name", "paternal_last_name", "maternal_last_name", "dni")
 VALUES
-('ADMIN', 'USER', 'TEST'),
-('LAZARO FLORIAN', 'MOTA', 'ALVA'),
-('LUIS ALBERTO', 'ALARCON', 'LOAYZA'),
-('CARLOS EDMUNDO', 'NAVARRO', 'DEPAZ');
+('ADMIN', 'USER', 'TEST', '00000000'),
+('LAZARO FLORIAN', 'MOTA', 'ALVA', '11122233'),
+('LUIS ALBERTO', 'ALARCON', 'LOAYZA', '22233344'),
+('CARLOS EDMUNDO', 'NAVARRO', 'DEPAZ', '33344455');
 
-
--- 3. Documentos de Identidad (DNI Perú)
-INSERT INTO "person_document"
-("document_type_id", "person_id", "value", "origin_country", "main", "effective_date", "expiration_date")
-VALUES
-(1, 2, '11122233','PE', true, '2020-01-01', '2030-01-01'),
-(1, 3, '22233344','PE', true, '2020-01-01', '2030-01-01'),
-(1, 4, '33344455','PE', true, '2020-01-01', '2030-01-01');
-
-
--- 4. Cuentas Institucionales (LDAP / UNMSM)
+-- 3. Cuentas Institucionales (LDAP / UNMSM)
 INSERT INTO "institutional_account"
 ("person_id", "ldap_uid", "institutional_email", "main", "account_status")
 VALUES
@@ -56,19 +37,9 @@ VALUES
 (4, 'cnavarrod', 'cnavarrod@unmsm.edu.pe', true, 'ACTIVO'),
 (1, 'aulavirtual.fisi', 'aulavirtual.fisi@unmsm.edu.pe', true, 'ACTIVO');
 
-
--- 5. Contactos Personales (Email Personal y Celular)
-INSERT INTO "person_contact"
-("person_id", "contact_type_id", "value", "main", "effective_date", "expiration_date")
-VALUES
-(2, 1, 'lmotaa.personal@gmail.com', false, '2026-01-01', '2030-12-31'),
-(2, 2, '+51987654321', true, '2026-01-01', '2030-12-31'),
-(3, 2, '+51999888777', true, '2026-01-01', '2030-12-31');
-
-
--- 6. Asignación de Roles de Sistema
-INSERT INTO "person_system_role"
-("person_id", "system_role_id", "granted_by_person_id", "active")
+-- 4. Asignación de Roles de Sistema
+INSERT INTO "account_system_role"
+("account_id", "system_role_id", "granted_by_account_id", "active")
 VALUES
 (1, 1, 1, true),
 (2, 2, 1, true),
@@ -76,7 +47,7 @@ VALUES
 (4, 2, 1, true);
 
 
--- 7. Registro de Docente
+-- 5. Registro de Docente
 INSERT INTO "teacher"
 ("person_id", "code", "moodle_id", "department")
 VALUES
@@ -85,7 +56,7 @@ VALUES
 (4, 22200102, 47, 'SW');
 
 
--- 8. Carga Académica
+-- 6. Carga Académica
 INSERT INTO "academic_workload"
 ("course_id", "academic_period_id", "teacher_id", "moodle_id", "cycle", "section", "school", "plan")
 VALUES
