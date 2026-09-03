@@ -13,6 +13,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
@@ -55,18 +57,22 @@ public class InstitutionalAccount implements UserDetails {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<AccountSystemRole> accountSystemRoles = new HashSet<>();
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (person == null || person.getPersonSystemRoles() == null) {
+        if (person == null || this.getAccountSystemRoles() == null) {
             return Collections.emptyList();
         }
 
-        return person.getPersonSystemRoles().stream()
-                .filter(pr -> Boolean.TRUE.equals(pr.getActive())
-                        && pr.getSystemRole() != null
-                        && Boolean.TRUE.equals(pr.getSystemRole().getActive()))
-                .map(pr -> new SimpleGrantedAuthority("ROLE_" + pr.getSystemRole().getCode().name()))
+        return this.getAccountSystemRoles().stream()
+                .filter(acc -> Boolean.TRUE.equals(acc.getActive())
+                        && acc.getSystemRole() != null
+                        && Boolean.TRUE.equals(acc.getSystemRole().getActive()))
+                .map(acc -> new SimpleGrantedAuthority("ROLE_" + acc.getSystemRole().getCode().name()))
                 .collect(Collectors.toSet());
     }
 

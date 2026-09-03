@@ -12,9 +12,8 @@ import java.util.Optional;
 public interface InstitutionalAccountRepository extends JpaRepository<InstitutionalAccount, Long> {
 
     @Query("SELECT DISTINCT a FROM InstitutionalAccount a " +
-           "JOIN FETCH a.person p " +
-           "LEFT JOIN FETCH p.personSystemRoles pr " +
-           "LEFT JOIN FETCH pr.systemRole r " +
+           "LEFT JOIN FETCH a.accountSystemRoles asr " +
+           "LEFT JOIN FETCH asr.systemRole r " +
            "WHERE a.ldapUid = :ldapUid")
     Optional<InstitutionalAccount> findByLdapUid(@Param("ldapUid") String ldapUid);
 }

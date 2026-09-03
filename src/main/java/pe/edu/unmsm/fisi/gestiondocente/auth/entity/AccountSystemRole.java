@@ -7,30 +7,30 @@ import pe.edu.unmsm.fisi.gestiondocente.person.entity.Person;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "person_system_role")
+@Table(name = "account_system_role")
 @Getter
 @Setter
-@ToString(exclude = {"person", "systemRole"})
+@ToString(exclude = {"account", "systemRole"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PersonSystemRole {
+public class AccountSystemRole {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "person_id", nullable = false)
-    private Person person;
+    @JoinColumn(name = "account_id", nullable = false)
+    private InstitutionalAccount account;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "system_role_id", nullable = false)
     private SystemRole systemRole;
 
-    @Column(name = "granted_by_person_id", nullable = false)
-    private Long grantedByPersonId;
+    @Column(name = "granted_by_account_id", nullable = false)
+    private Long grantedByAccountId;
 
     @Column(name = "active")
     private Boolean active;

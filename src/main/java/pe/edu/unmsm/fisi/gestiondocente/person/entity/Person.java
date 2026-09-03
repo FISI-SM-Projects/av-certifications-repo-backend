@@ -5,7 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import pe.edu.unmsm.fisi.gestiondocente.auth.entity.AccountStatus;
-import pe.edu.unmsm.fisi.gestiondocente.auth.entity.PersonSystemRole;
+import pe.edu.unmsm.fisi.gestiondocente.auth.entity.AccountSystemRole;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -15,7 +15,6 @@ import java.util.Set;
 @Table(name = "person")
 @Getter
 @Setter
-@ToString(exclude = "personSystemRoles")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
@@ -36,6 +35,9 @@ public class Person {
     @Column(name = "maternal_last_name", length = 80)
     private String maternalLastName;
 
+    @Column(name = "dni", unique = true, length = 8)
+    private String dni;
+
     @Enumerated(EnumType.STRING)
     @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(name = "register_state", nullable = false, length = 20)
@@ -46,10 +48,6 @@ public class Person {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @Builder.Default
-    private Set<PersonSystemRole> personSystemRoles = new HashSet<>();
 
     public String getFullName () {
         String maternal = (this.maternalLastName != null) ? " " + this.maternalLastName : "";

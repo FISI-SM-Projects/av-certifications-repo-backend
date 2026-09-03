@@ -32,10 +32,10 @@ VALUES
 INSERT INTO "institutional_account"
 ("person_id", "ldap_uid", "institutional_email", "main", "account_status")
 VALUES
+(1, 'aulavirtual.fisi', 'aulavirtual.fisi@unmsm.edu.pe', true, 'ACTIVO'),
 (2, 'lmotaa', 'lmotaa@unmsm.edu.pe', true, 'ACTIVO'),
 (3, 'lalarconl', 'lalarconl@unmsm.edu.pe', true, 'ACTIVO'),
-(4, 'cnavarrod', 'cnavarrod@unmsm.edu.pe', true, 'ACTIVO'),
-(1, 'aulavirtual.fisi', 'aulavirtual.fisi@unmsm.edu.pe', true, 'ACTIVO');
+(4, 'cnavarrod', 'cnavarrod@unmsm.edu.pe', true, 'ACTIVO');
 
 -- 4. Asignación de Roles de Sistema
 INSERT INTO "account_system_role"
