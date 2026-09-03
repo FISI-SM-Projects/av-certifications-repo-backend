@@ -1,6 +1,7 @@
 package pe.edu.unmsm.fisi.gestiondocente.auth.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,6 +12,7 @@ import pe.edu.unmsm.fisi.gestiondocente.auth.dto.LoginResponse;
 import pe.edu.unmsm.fisi.gestiondocente.auth.service.LoginService;
 
 @RestController
+@Profile("!test")
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 

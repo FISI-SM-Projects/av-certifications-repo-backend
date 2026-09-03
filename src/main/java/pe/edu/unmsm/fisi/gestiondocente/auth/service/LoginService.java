@@ -2,6 +2,7 @@ package pe.edu.unmsm.fisi.gestiondocente.auth.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@Profile("!test")
 public class LoginService {
 
     private static final Logger log = LoggerFactory.getLogger(LoginService.class);
@@ -69,6 +71,7 @@ public class LoginService {
 
             Map<String, Object> extraClaims = new HashMap<>();
             extraClaims.put("roles", roles);
+            extraClaims.put("accountId", account.getId());
 
             if (account.getPerson() != null){
                 extraClaims.put("personId", account.getPerson().getId());

@@ -32,4 +32,12 @@ public class SystemRole {
 
     @Column(name = "active")
     private Boolean active;
+
+    public Role getCode() {
+        return code;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
 }
