@@ -32,6 +32,16 @@ public class JwtService {
         return extractClaim(token, claims -> claims.get("roles", List.class));
     }
 
+    public Long extractPersonId(String token) {
+        return extractClaim(token, claims -> {
+            Object val = claims.get("personId");
+            if (val instanceof Number num) {
+                return num.longValue();
+            }
+            return null;
+        });
+    }
+
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
