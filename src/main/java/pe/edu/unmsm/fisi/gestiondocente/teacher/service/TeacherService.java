@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.edu.unmsm.fisi.gestiondocente.teacher.dto.TeacherProfile;
-import pe.edu.unmsm.fisi.gestiondocente.teacher.entitiy.Teacher;
+import pe.edu.unmsm.fisi.gestiondocente.teacher.entity.Teacher;
 import pe.edu.unmsm.fisi.gestiondocente.teacher.repository.TeacherRepository;
 
 import java.util.NoSuchElementException;

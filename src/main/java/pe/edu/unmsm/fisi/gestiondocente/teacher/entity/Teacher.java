@@ -1,4 +1,4 @@
-package pe.edu.unmsm.fisi.gestiondocente.teacher.entitiy;
+package pe.edu.unmsm.fisi.gestiondocente.teacher.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
