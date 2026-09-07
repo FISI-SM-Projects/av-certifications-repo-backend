@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -27,6 +28,7 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+    private final Environment environment;
 
     @Value("${ldap.url}")
     private String ldapUrl;
@@ -46,9 +48,11 @@ public class SecurityConfig {
     @Value("${ldap.user.search.filter}")
     private String ldapUserSearchFilter;
 
-    public SecurityConfig(JwtFilter jwtFilter, JwtAuthenticationEntryPoint authenticationEntryPoint) {
+    public SecurityConfig(JwtFilter jwtFilter, JwtAuthenticationEntryPoint authenticationEntryPoint,
+            Environment environment) {
         this.jwtFilter = jwtFilter;
         this.authenticationEntryPoint = authenticationEntryPoint;
+        this.environment = environment;
     }
 
     @Bean
@@ -83,6 +87,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        boolean demoProfileActive = java.util.Arrays.asList(environment.getActiveProfiles()).contains("demo");
+
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
@@ -90,11 +96,22 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authenticationEntryPoint))
                 .sessionManagement(sessionManager -> sessionManager
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/swagger/**", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**", "/api-docs", "/api-docs/**").permitAll()
-                        .requestMatchers("/api/v1/health").permitAll()
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .anyRequest().authenticated())
+                .authorizeHttpRequests(authorize -> {
+                    authorize
+                            .requestMatchers("/swagger/**", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**", "/api-docs", "/api-docs/**").permitAll()
+                            .requestMatchers("/api/v1/health").permitAll()
+                            .requestMatchers("/api/v1/auth/**").permitAll();
+
+                    if (demoProfileActive) {
+                        authorize.requestMatchers(
+                                "/api/v1/docentes/**",
+                                "/api/v1/director/**",
+                                "/api/v1/constancias/**")
+                                .permitAll();
+                    }
+
+                    authorize.anyRequest().authenticated();
+                })
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
