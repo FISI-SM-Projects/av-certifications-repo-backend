@@ -7,10 +7,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import pe.edu.unmsm.fisi.gestiondocente.academic.dto.AcademicWorkloadDTO;
 import pe.edu.unmsm.fisi.gestiondocente.auth.dto.UserPrincipal;
 import pe.edu.unmsm.fisi.gestiondocente.shared.response.DefaultResponse;
 import pe.edu.unmsm.fisi.gestiondocente.teacher.dto.TeacherProfile;
 import pe.edu.unmsm.fisi.gestiondocente.teacher.service.TeacherService;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,5 +27,14 @@ public class TeacherController {
     public ResponseEntity<DefaultResponse<TeacherProfile>> getMyProfile(@AuthenticationPrincipal UserPrincipal principal) {
         TeacherProfile profile = teacherService.getTeacherProfileByPersonId(principal.personId());
         return ResponseEntity.ok(DefaultResponse.success("Información del perfil docente", profile));
+    }
+
+    @GetMapping("/me/courses")
+    @PreAuthorize("hasRole('DOCENTE')")
+    public ResponseEntity<DefaultResponse<List<AcademicWorkloadDTO>>> getMyCourses(
+            @AuthenticationPrincipal UserPrincipal principal) {
+
+        List<AcademicWorkloadDTO> courses = teacherService.getCoursesByTeacherPersonId(principal.personId());
+        return ResponseEntity.ok(DefaultResponse.success("Cursos asignados al docente", courses));
     }
 }

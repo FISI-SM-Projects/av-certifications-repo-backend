@@ -3,17 +3,21 @@ package pe.edu.unmsm.fisi.gestiondocente.teacher.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pe.edu.unmsm.fisi.gestiondocente.academic.dto.AcademicWorkloadDTO;
+import pe.edu.unmsm.fisi.gestiondocente.academic.repository.AcademicWorkloadRepository;
 import pe.edu.unmsm.fisi.gestiondocente.teacher.dto.TeacherProfile;
 import pe.edu.unmsm.fisi.gestiondocente.teacher.entity.Teacher;
 import pe.edu.unmsm.fisi.gestiondocente.teacher.repository.TeacherRepository;
 
 import java.util.NoSuchElementException;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class TeacherService {
 
     private final TeacherRepository teacherRepository;
+    private final AcademicWorkloadRepository workloadRepository;
 
     @Transactional(readOnly = true)
     public TeacherProfile getTeacherProfileByPersonId(Long personId) {
@@ -36,5 +40,13 @@ public class TeacherService {
                 teacher.getDepartment(),
                 teacher.getPerson().getRegisterState()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<AcademicWorkloadDTO> getCoursesByTeacherPersonId(Long personId) {
+        if (personId == null) {
+            throw new IllegalArgumentException("El identificador de persona no puede ser nulo");
+        }
+        return workloadRepository.findCoursesByTeacherPersonId(personId);
     }
 }
