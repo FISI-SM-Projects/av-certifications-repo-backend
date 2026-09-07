@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import pe.edu.unmsm.fisi.gestiondocente.teacher.entity.Teacher;
 
 @Entity
 @Table(name = "academic_workload")
@@ -27,11 +28,12 @@ public class AcademicWorkload {
     @JoinColumn(name = "academic_period_id", nullable = false)
     private AcademicPeriod academicPeriod;
 
-    @Column(name = "teacher_id", nullable = false)
-    private Long teacherId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "teacher_id", nullable = false)
+    private Teacher teacher;
 
     @Column(name = "moodle_id", nullable = false, unique = true)
-    private Integer moodleId;
+    private Long moodleId;
 
     @Column(name = "cycle", nullable = false)
     private Integer cycle;

@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS "academic_workload" (
 	"course_id" BIGINT NOT NULL,
 	"academic_period_id" BIGINT NOT NULL,
 	"teacher_id" BIGINT NOT NULL,
-	"moodle_id" INT NOT NULL UNIQUE,
+	"moodle_id" BIGINT NOT NULL UNIQUE,
 	"cycle" INT NOT NULL,
 	"section" INT NOT NULL,
 	"school" SCHOOL NOT NULL,
