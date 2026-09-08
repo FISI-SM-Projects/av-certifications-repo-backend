@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import pe.edu.unmsm.fisi.gestiondocente.shared.response.ErrorDetails;
 import pe.edu.unmsm.fisi.gestiondocente.shared.response.ErrorResponse;
 import pe.edu.unmsm.fisi.gestiondocente.shared.response.ErrorResponseFactory;
@@ -74,5 +75,18 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFound(NoResourceFoundException ex, WebRequest request) {
+        String message = ex.getMessage() != null ? ex.getMessage() : "Recurso no encontrado";
+
+        ErrorResponse errorResponse = ErrorResponseFactory.create(
+                HttpStatus.NOT_FOUND,
+                message,
+                request
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 }
