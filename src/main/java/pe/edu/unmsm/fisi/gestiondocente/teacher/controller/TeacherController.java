@@ -1,6 +1,9 @@
 package pe.edu.unmsm.fisi.gestiondocente.teacher.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,8 +15,6 @@ import pe.edu.unmsm.fisi.gestiondocente.auth.dto.UserPrincipal;
 import pe.edu.unmsm.fisi.gestiondocente.shared.response.DefaultResponse;
 import pe.edu.unmsm.fisi.gestiondocente.teacher.dto.TeacherProfile;
 import pe.edu.unmsm.fisi.gestiondocente.teacher.service.TeacherService;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,10 +32,11 @@ public class TeacherController {
 
     @GetMapping("/me/courses")
     @PreAuthorize("hasRole('DOCENTE')")
-    public ResponseEntity<DefaultResponse<List<AcademicWorkloadDTO>>> getMyCourses(
-            @AuthenticationPrincipal UserPrincipal principal) {
+    public ResponseEntity<DefaultResponse<Page<AcademicWorkloadDTO>>> getMyCourses(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PageableDefault(page = 0, size = 2) Pageable pageable) {
 
-        List<AcademicWorkloadDTO> courses = teacherService.getCoursesByTeacherPersonId(principal.personId());
+        Page<AcademicWorkloadDTO> courses = teacherService.getCoursesByTeacherPersonId(principal.personId(), pageable);
         return ResponseEntity.ok(DefaultResponse.success("Cursos asignados al docente", courses));
     }
 }

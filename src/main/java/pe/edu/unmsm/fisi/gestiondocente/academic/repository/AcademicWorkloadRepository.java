@@ -1,5 +1,7 @@
 package pe.edu.unmsm.fisi.gestiondocente.academic.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -7,12 +9,11 @@ import org.springframework.stereotype.Repository;
 import pe.edu.unmsm.fisi.gestiondocente.academic.dto.AcademicWorkloadDTO;
 import pe.edu.unmsm.fisi.gestiondocente.academic.entity.AcademicWorkload;
 
-import java.util.List;
-
 @Repository
 public interface AcademicWorkloadRepository extends JpaRepository<AcademicWorkload, Long> {
 
-    @Query("""
+    @Query(
+            value = """
                 SELECT new pe.edu.unmsm.fisi.gestiondocente.academic.dto.AcademicWorkloadDTO(
                     aw.id,
                     aw.moodleId,
@@ -38,6 +39,13 @@ public interface AcademicWorkloadRepository extends JpaRepository<AcademicWorklo
                 JOIN aw.academicPeriod ap
                 JOIN aw.teacher t
                 WHERE t.person.id = :personId
-            """)
-    List<AcademicWorkloadDTO> findCoursesByTeacherPersonId(@Param("personId") Long personId);
+            """,
+            countQuery = """
+                SELECT COUNT(aw)
+                FROM AcademicWorkload aw
+                JOIN aw.teacher t
+                WHERE t.person.id = :personId
+            """
+    )
+    Page<AcademicWorkloadDTO> findCoursesByTeacherPersonId(@Param("personId") Long personId, Pageable pageable);
 }
