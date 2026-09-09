@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import pe.edu.unmsm.fisi.gestiondocente.auth.entity.AccountStatus;
+import pe.edu.unmsm.fisi.gestiondocente.auth.entity.AccountSystemRole;
 
 import java.time.LocalDateTime;
 
@@ -12,7 +13,6 @@ import java.time.LocalDateTime;
 @Table(name = "person")
 @Getter
 @Setter
-@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
@@ -32,6 +32,9 @@ public class Person {
 
     @Column(name = "maternal_last_name", length = 80)
     private String maternalLastName;
+
+    @Column(name = "dni", unique = true, length = 8)
+    private String dni;
 
     @Enumerated(EnumType.STRING)
     @JdbcType(PostgreSQLEnumJdbcType.class)

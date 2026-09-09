@@ -1,12 +1,15 @@
 package pe.edu.unmsm.fisi.gestiondocente.auth.exception;
 
-public class InvalidCredentialsException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+import pe.edu.unmsm.fisi.gestiondocente.shared.exception.BaseDomainException;
+
+public class InvalidCredentialsException extends BaseDomainException {
 
     public InvalidCredentialsException(String message) {
-        super(message);
+        super(message, HttpStatus.UNAUTHORIZED);
     }
 
     public InvalidCredentialsException(String message, Throwable cause) {
-        super(message, cause);
+        super(message, HttpStatus.UNAUTHORIZED, cause);
     }
 }

@@ -1,6 +1,8 @@
 package pe.edu.unmsm.fisi.gestiondocente.auth.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
@@ -8,16 +10,25 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+import pe.edu.unmsm.fisi.gestiondocente.shared.response.ErrorResponse;
+import pe.edu.unmsm.fisi.gestiondocente.shared.response.ErrorResponseFactory;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    public JwtAuthenticationEntryPoint(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
+    public JwtAuthenticationEntryPoint() {
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
+        this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    }
 
     @Override
     public void commence(
@@ -29,21 +40,14 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
 
         String jwtError = (String) request.getAttribute("jwt_error");
-        String message;
+        String message = (jwtError != null) ? jwtError : "No autorizado: Se requiere un token JWT válido";
 
-        if (jwtError != null) {
-            message = jwtError;
-        } else {
-            message = "No autorizad: Se requiere un token JWT válido";
-        }
+        ErrorResponse errorResponse = ErrorResponseFactory.create(
+                HttpStatus.UNAUTHORIZED,
+                message,
+                request
+        );
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now().toString());
-        body.put("status", HttpStatus.UNAUTHORIZED.value());
-        body.put("error", "Unauthorized");
-        body.put("message", message);
-        body.put("path", request.getRequestURI());
-
-        objectMapper.writeValue(response.getOutputStream(), body);
+        objectMapper.writeValue(response.getOutputStream(), errorResponse);
     }
 }

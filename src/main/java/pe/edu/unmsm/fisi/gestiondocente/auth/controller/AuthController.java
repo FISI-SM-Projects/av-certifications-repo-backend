@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.edu.unmsm.fisi.gestiondocente.auth.dto.LoginRequest;
 import pe.edu.unmsm.fisi.gestiondocente.auth.dto.LoginResponse;
 import pe.edu.unmsm.fisi.gestiondocente.auth.service.LoginService;
+import pe.edu.unmsm.fisi.gestiondocente.shared.response.DefaultResponse;
 
 @RestController
 @Profile("!test")
@@ -23,8 +24,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<DefaultResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = loginService.login(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(DefaultResponse.success("Login exitoso", response));
     }
 }

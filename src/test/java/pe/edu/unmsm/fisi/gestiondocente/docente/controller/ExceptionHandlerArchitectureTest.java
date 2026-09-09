@@ -8,7 +8,7 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import pe.edu.unmsm.fisi.gestiondocente.auth.controller.DemoAuthExceptionHandler;
+import pe.edu.unmsm.fisi.gestiondocente.auth.controller.AuthExceptionHandler;
 
 class ExceptionHandlerArchitectureTest {
 
@@ -16,7 +16,7 @@ class ExceptionHandlerArchitectureTest {
     void illegalStateExceptionNoDebeMapearseComoErrorDeDominio() {
         assertThat(exceptionHandlerTypes(DocenteExceptionHandler.class))
                 .doesNotContain(IllegalStateException.class);
-        assertThat(exceptionHandlerTypes(DemoAuthExceptionHandler.class))
+        assertThat(exceptionHandlerTypes(AuthExceptionHandler.class))
                 .doesNotContain(IllegalStateException.class);
     }
 
