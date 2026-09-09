@@ -9,6 +9,7 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.Constancia;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.EstadoConstancia;
 
 @Repository
+@org.springframework.context.annotation.Profile("test")
 public class DemoConstanciaRepository implements LegacyConstanciaRepository {
 
     // Repositorio legacy usado solo por compatibilidad con pruebas y datos demo previos.

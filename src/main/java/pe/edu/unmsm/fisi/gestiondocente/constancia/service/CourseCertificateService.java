@@ -23,6 +23,7 @@ import pe.edu.unmsm.fisi.gestiondocente.docente.entity.Docente;
 import pe.edu.unmsm.fisi.gestiondocente.docente.repository.DocenteRepository;
 
 @Service
+@org.springframework.context.annotation.Profile("test")
 public class CourseCertificateService {
 
     private static final String REQUEST_FILE = "request.json";

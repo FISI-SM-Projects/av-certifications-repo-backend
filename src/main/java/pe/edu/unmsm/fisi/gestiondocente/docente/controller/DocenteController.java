@@ -11,6 +11,7 @@ import pe.edu.unmsm.fisi.gestiondocente.docente.service.DocenteService;
 
 @RestController
 @RequestMapping("/api/v1/docentes")
+@org.springframework.context.annotation.Profile("test")
 public class DocenteController {
 
     private final DocenteService docenteService;

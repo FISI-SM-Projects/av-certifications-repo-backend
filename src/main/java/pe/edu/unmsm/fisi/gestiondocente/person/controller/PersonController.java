@@ -1,6 +1,6 @@
 package pe.edu.unmsm.fisi.gestiondocente.person.controller;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,11 +10,15 @@ import pe.edu.unmsm.fisi.gestiondocente.person.entity.Person;
 import pe.edu.unmsm.fisi.gestiondocente.person.service.PersonService;
 
 @RestController
-@RequiredArgsConstructor
+@Profile("!test")
 @RequestMapping("/api/v1/users")
 public class PersonController {
 
     private final PersonService personService;
+
+    public PersonController(PersonService personService) {
+        this.personService = personService;
+    }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")

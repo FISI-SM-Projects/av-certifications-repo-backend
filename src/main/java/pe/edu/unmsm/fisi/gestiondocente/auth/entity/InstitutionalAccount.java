@@ -9,7 +9,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import pe.edu.unmsm.fisi.gestiondocente.person.entity.Person;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,7 +20,7 @@ import java.util.stream.Collectors;
 @Table(name = "institutional_account")
 @Getter
 @Setter
-@ToString(exclude = "person")
+@ToString(exclude = {"person", "accountSystemRoles"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
@@ -57,22 +56,21 @@ public class InstitutionalAccount implements UserDetails {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "institutionalAccount", fetch = FetchType.LAZY)
     @Builder.Default
     private Set<AccountSystemRole> accountSystemRoles = new HashSet<>();
 
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (person == null || this.getAccountSystemRoles() == null) {
+        if (accountSystemRoles == null) {
             return Collections.emptyList();
         }
 
-        return this.getAccountSystemRoles().stream()
-                .filter(acc -> Boolean.TRUE.equals(acc.getActive())
-                        && acc.getSystemRole() != null
-                        && Boolean.TRUE.equals(acc.getSystemRole().getActive()))
-                .map(acc -> new SimpleGrantedAuthority("ROLE_" + acc.getSystemRole().getCode().name()))
+        return accountSystemRoles.stream()
+                .filter(accountRole -> Boolean.TRUE.equals(accountRole.getActive())
+                        && accountRole.getSystemRole() != null
+                        && Boolean.TRUE.equals(accountRole.getSystemRole().getActive()))
+                .map(accountRole -> new SimpleGrantedAuthority("ROLE_" + accountRole.getSystemRole().getCode().name()))
                 .collect(Collectors.toSet());
     }
 
@@ -105,5 +103,20 @@ public class InstitutionalAccount implements UserDetails {
     public boolean isEnabled() {
         return this.accountStatus == AccountStatus.ACTIVO &&
                 (this.person != null && this.person.getRegisterState() == AccountStatus.ACTIVO);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getInstitutionalEmail() { return institutionalEmail; }
+    public AccountStatus getAccountStatus() { return accountStatus; }
+
+    public Person getPerson() {
+        return person;
+    }
+
+    public Set<AccountSystemRole> getAccountSystemRoles() {
+        return accountSystemRoles;
     }
 }

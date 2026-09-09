@@ -11,6 +11,7 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.CertificatePdfNotFo
 import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.CertificateGenerationRepository;
 
 @Service
+@org.springframework.context.annotation.Profile("test")
 public class ConstanciaQueryService {
 
     private final CertificateGenerationRepository constanciaRepository;

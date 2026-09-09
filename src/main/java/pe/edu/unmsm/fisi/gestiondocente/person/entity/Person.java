@@ -8,8 +8,6 @@ import pe.edu.unmsm.fisi.gestiondocente.auth.entity.AccountStatus;
 import pe.edu.unmsm.fisi.gestiondocente.auth.entity.AccountSystemRole;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "person")
@@ -52,5 +50,17 @@ public class Person {
     public String getFullName () {
         String maternal = (this.maternalLastName != null) ? " " + this.maternalLastName : "";
         return this.firstName + " " + this.paternalLastName + maternal;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getFirstName() { return firstName; }
+    public String getPaternalLastName() { return paternalLastName; }
+    public String getMaternalLastName() { return maternalLastName; }
+
+    public AccountStatus getRegisterState() {
+        return registerState;
     }
 }

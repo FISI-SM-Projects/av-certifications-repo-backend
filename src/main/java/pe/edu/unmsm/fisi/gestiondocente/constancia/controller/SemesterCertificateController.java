@@ -13,6 +13,7 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.service.SemesterCertificateSe
 
 @RestController
 @RequestMapping("/api/v1/constancias")
+@org.springframework.context.annotation.Profile("test")
 public class SemesterCertificateController {
 
     private final SemesterCertificateService semesterCertificateService;

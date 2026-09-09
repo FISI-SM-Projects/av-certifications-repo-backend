@@ -8,6 +8,7 @@ import pe.edu.unmsm.fisi.gestiondocente.usuario.dto.UsuarioSesionDto;
 import pe.edu.unmsm.fisi.gestiondocente.usuario.entity.Usuario;
 
 @Component
+@org.springframework.context.annotation.Profile("test")
 public class UsuarioMapper {
 
     private final DocenteRepository docenteRepository;

@@ -4,15 +4,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.config.ldap.LdapBindAuthenticationManagerFactory;
+import org.springframework.security.ldap.authentication.BindAuthenticator;
+import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
+import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.security.ldap.server.UnboundIdContainer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -22,10 +26,14 @@ import pe.edu.unmsm.fisi.gestiondocente.auth.util.JwtFilter;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@Profile("!test")
 public class SecurityConfig {
+
+    private static final String DEV_USER_SEARCH_BASE = "ou=Facultad de Ingenieria de Sistemas e Informatica";
 
     private final JwtFilter jwtFilter;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+    private final Environment environment;
 
     @Value("${ldap.url}")
     private String ldapUrl;
@@ -45,9 +53,11 @@ public class SecurityConfig {
     @Value("${ldap.user.search.filter}")
     private String ldapUserSearchFilter;
 
-    public SecurityConfig(JwtFilter jwtFilter, JwtAuthenticationEntryPoint authenticationEntryPoint) {
+    public SecurityConfig(JwtFilter jwtFilter, JwtAuthenticationEntryPoint authenticationEntryPoint,
+            Environment environment) {
         this.jwtFilter = jwtFilter;
         this.authenticationEntryPoint = authenticationEntryPoint;
+        this.environment = environment;
     }
 
     @Bean
@@ -63,7 +73,7 @@ public class SecurityConfig {
         String fullUrl = ldapUrl.endsWith("/") ? ldapUrl +
                 ldapBaseDn : ldapUrl + "/" + ldapBaseDn;
         DefaultSpringSecurityContextSource contextSource = new DefaultSpringSecurityContextSource(fullUrl);
-        if (ldapManagerDn != null && !ldapManagerDn.isBlank() && ldapManagerPassword != null && !ldapManagerPassword.isBlank()) {
+        if (!isDevProfileActive() && ldapManagerDn != null && !ldapManagerDn.isBlank() && ldapManagerPassword != null && !ldapManagerPassword.isBlank()) {
             contextSource.setUserDn(ldapManagerDn);
             contextSource.setPassword(ldapManagerPassword);
         }
@@ -73,15 +83,30 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager(DefaultSpringSecurityContextSource contextSource) {
-        LdapBindAuthenticationManagerFactory factory = new LdapBindAuthenticationManagerFactory(contextSource);
-        factory.setUserSearchBase(ldapUserSearchBase);
-        factory.setUserSearchFilter(ldapUserSearchFilter);
+        FilterBasedLdapUserSearch userSearch = new FilterBasedLdapUserSearch(
+                normalizedUserSearchBase(),
+                ldapUserSearchFilter,
+                contextSource);
+        userSearch.setSearchSubtree(true);
 
-        return factory.createAuthenticationManager();
+        BindAuthenticator authenticator = new BindAuthenticator(contextSource);
+        authenticator.setUserSearch(userSearch);
+
+        return new ProviderManager(new LdapAuthenticationProvider(authenticator));
+    }
+
+    private String normalizedUserSearchBase() {
+        return ldapUserSearchBase == null || ldapUserSearchBase.isBlank() ? DEV_USER_SEARCH_BASE : ldapUserSearchBase.trim();
+    }
+
+    private boolean isDevProfileActive() {
+        return java.util.Arrays.asList(environment.getActiveProfiles()).contains("dev");
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        boolean devProfileActive = isDevProfileActive();
+
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
@@ -89,11 +114,20 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authenticationEntryPoint))
                 .sessionManagement(sessionManager -> sessionManager
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/swagger/**", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
-                        .requestMatchers("/api/v1/health").permitAll()
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .anyRequest().authenticated())
+                .authorizeHttpRequests(authorize -> {
+                    if (devProfileActive) {
+                        authorize.requestMatchers("/swagger/**", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**", "/api-docs", "/api-docs/**").permitAll();
+                    } else {
+                        authorize.requestMatchers("/swagger/**", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**", "/api-docs", "/api-docs/**").authenticated();
+                    }
+
+                    authorize
+                            .requestMatchers("/api/v1/health").permitAll()
+                            .requestMatchers("/api/v1/auth/me").authenticated()
+                            .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/auth/login").permitAll();
+
+                    authorize.anyRequest().authenticated();
+                })
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
