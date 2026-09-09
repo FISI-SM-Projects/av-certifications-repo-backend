@@ -31,6 +31,7 @@ import pe.edu.unmsm.fisi.gestiondocente.docente.entity.Docente;
 import pe.edu.unmsm.fisi.gestiondocente.docente.repository.DocenteRepository;
 
 @Service
+@org.springframework.context.annotation.Profile("demo")
 public class SemesterCertificateService {
 
     private static final String SOURCE_SUMMARY_FILE = "source-summary.json";

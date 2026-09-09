@@ -10,6 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface InstitutionalAccountRepository extends JpaRepository<InstitutionalAccount, Long> {
+    java.util.List<InstitutionalAccount> findByPersonIdOrderByMainDescIdAsc(Long personId);
 
     @Query("SELECT DISTINCT a FROM InstitutionalAccount a " +
            "JOIN FETCH a.person p " +

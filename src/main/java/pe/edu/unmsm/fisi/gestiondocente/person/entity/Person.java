@@ -53,6 +53,10 @@ public class Person {
         return id;
     }
 
+    public String getFirstName() { return firstName; }
+    public String getPaternalLastName() { return paternalLastName; }
+    public String getMaternalLastName() { return maternalLastName; }
+
     public AccountStatus getRegisterState() {
         return registerState;
     }

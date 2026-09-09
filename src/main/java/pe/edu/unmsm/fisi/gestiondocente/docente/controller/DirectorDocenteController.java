@@ -12,6 +12,7 @@ import pe.edu.unmsm.fisi.gestiondocente.docente.service.DocenteService;
 
 @RestController
 @RequestMapping("/api/v1/director/docentes")
+@org.springframework.context.annotation.Profile("demo")
 public class DirectorDocenteController {
 
     private final DocenteService docenteService;

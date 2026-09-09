@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import pe.edu.unmsm.fisi.gestiondocente.periodo.entity.PeriodoAcademico;
 
 @Repository
+@org.springframework.context.annotation.Profile("demo")
 public class PeriodoAcademicoRepository {
 
     public Optional<PeriodoAcademico> findById(Long id) {

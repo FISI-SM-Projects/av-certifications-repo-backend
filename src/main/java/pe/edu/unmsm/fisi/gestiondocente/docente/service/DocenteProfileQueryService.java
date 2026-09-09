@@ -15,6 +15,7 @@ import pe.edu.unmsm.fisi.gestiondocente.docente.mapper.DocenteMapper;
 import pe.edu.unmsm.fisi.gestiondocente.docente.repository.DocenteRepository;
 
 @Service
+@org.springframework.context.annotation.Profile("demo")
 public class DocenteProfileQueryService {
 
     private final DocenteRepository docenteRepository;

@@ -109,6 +109,9 @@ public class InstitutionalAccount implements UserDetails {
         return id;
     }
 
+    public String getInstitutionalEmail() { return institutionalEmail; }
+    public AccountStatus getAccountStatus() { return accountStatus; }
+
     public Person getPerson() {
         return person;
     }

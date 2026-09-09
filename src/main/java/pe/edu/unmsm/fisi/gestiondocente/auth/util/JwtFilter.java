@@ -53,7 +53,11 @@ public class JwtFilter  extends OncePerRequestFilter {
                         ? roles.stream().map(SimpleGrantedAuthority::new).toList()
                         : java.util.Collections.emptyList();
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        username, null, authorities
+                        new pe.edu.unmsm.fisi.gestiondocente.auth.entity.AuthenticatedAccount(username,
+                                jwtService.extractClaim(jwt, claims -> {
+                                    Object id = claims.get("accountId");
+                                    return id instanceof Number number ? number.longValue() : null;
+                                })), null, authorities
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);

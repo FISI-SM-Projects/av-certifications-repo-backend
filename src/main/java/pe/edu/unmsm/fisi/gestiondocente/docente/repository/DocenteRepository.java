@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import pe.edu.unmsm.fisi.gestiondocente.docente.entity.Docente;
 
 @Repository
+@org.springframework.context.annotation.Profile("demo")
 public class DocenteRepository {
 
     private static final List<Docente> DOCENTES_DEMO = List.of(

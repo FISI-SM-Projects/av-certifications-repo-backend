@@ -15,6 +15,7 @@ import pe.edu.unmsm.fisi.gestiondocente.usuario.mapper.UsuarioMapper;
 import pe.edu.unmsm.fisi.gestiondocente.usuario.repository.UsuarioRepository;
 
 @Service
+@org.springframework.context.annotation.Profile("demo")
 public class DemoAuthService {
 
     private static final String MENSAJE_CORREO_OBLIGATORIO = "El correo es obligatorio";

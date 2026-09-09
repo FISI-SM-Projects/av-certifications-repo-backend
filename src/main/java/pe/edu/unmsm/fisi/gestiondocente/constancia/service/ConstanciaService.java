@@ -12,6 +12,7 @@ import pe.edu.unmsm.fisi.gestiondocente.periodo.entity.PeriodoAcademico;
 import pe.edu.unmsm.fisi.gestiondocente.periodo.repository.PeriodoAcademicoRepository;
 
 @Service
+@org.springframework.context.annotation.Profile("demo")
 public class ConstanciaService {
 
     private static final String PERIODO_NO_DEFINIDO = "Periodo no definido";
