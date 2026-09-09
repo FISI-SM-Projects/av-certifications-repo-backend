@@ -105,7 +105,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        boolean demoProfileActive = java.util.Arrays.asList(environment.getActiveProfiles()).contains("demo");
+        boolean devProfileActive = isDevProfileActive();
 
         return http
                 .cors(Customizer.withDefaults())
@@ -115,20 +115,16 @@ public class SecurityConfig {
                 .sessionManagement(sessionManager -> sessionManager
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> {
+                    if (devProfileActive) {
+                        authorize.requestMatchers("/swagger/**", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**", "/api-docs", "/api-docs/**").permitAll();
+                    } else {
+                        authorize.requestMatchers("/swagger/**", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**", "/api-docs", "/api-docs/**").authenticated();
+                    }
+
                     authorize
-                            .requestMatchers("/swagger/**", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**", "/api-docs", "/api-docs/**").permitAll()
                             .requestMatchers("/api/v1/health").permitAll()
                             .requestMatchers("/api/v1/auth/me").authenticated()
                             .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/auth/login").permitAll();
-
-                    if (demoProfileActive) {
-                        authorize.requestMatchers("/api/v1/auth/demo-users", "/api/v1/auth/demo-login").permitAll();
-                        authorize.requestMatchers(
-                                "/api/v1/docentes/**",
-                                "/api/v1/director/**",
-                                "/api/v1/constancias/**")
-                                .permitAll();
-                    }
 
                     authorize.anyRequest().authenticated();
                 })

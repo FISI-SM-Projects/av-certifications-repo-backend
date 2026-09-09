@@ -9,7 +9,7 @@ import pe.edu.unmsm.fisi.gestiondocente.usuario.entity.RolUsuario;
 import pe.edu.unmsm.fisi.gestiondocente.usuario.entity.Usuario;
 
 @Repository
-@org.springframework.context.annotation.Profile("demo")
+@org.springframework.context.annotation.Profile("test")
 public class UsuarioRepository {
 
     private static final List<Usuario> USUARIOS_DEMO = List.of(

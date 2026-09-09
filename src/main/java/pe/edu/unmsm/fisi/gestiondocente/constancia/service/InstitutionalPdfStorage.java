@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
-@Profile("!demo & !test")
+@Profile("!test")
 public class InstitutionalPdfStorage {
     private final Path root;
     public InstitutionalPdfStorage(@Value("${app.storage.root:storage}") String root) {

@@ -8,8 +8,19 @@ public class Certification {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "academic_workload_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "academic_workload_id")
     private pe.edu.unmsm.fisi.gestiondocente.cargadocente.entity.AcademicWorkload academicWorkload;
+
+    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "teacher_id")
+    private pe.edu.unmsm.fisi.gestiondocente.docente.entity.Teacher teacher;
+
+    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "academic_period_id")
+    private pe.edu.unmsm.fisi.gestiondocente.periodo.entity.AcademicPeriod academicPeriod;
+
+    @Enumerated(EnumType.STRING)
+    @org.hibernate.annotations.JdbcType(org.hibernate.dialect.PostgreSQLEnumJdbcType.class)
+    @Column(name = "certificate_type", nullable = false)
+    private CertificationType certificateType = CertificationType.COURSE;
 
     @Column(name = "document_path", nullable = false, length = 500)
     private String documentPath;
@@ -28,6 +39,15 @@ public class Certification {
 
     public pe.edu.unmsm.fisi.gestiondocente.cargadocente.entity.AcademicWorkload getAcademicWorkload() { return academicWorkload; }
     public void setAcademicWorkload(pe.edu.unmsm.fisi.gestiondocente.cargadocente.entity.AcademicWorkload academicWorkload) { this.academicWorkload = academicWorkload; }
+
+    public pe.edu.unmsm.fisi.gestiondocente.docente.entity.Teacher getTeacher() { return teacher; }
+    public void setTeacher(pe.edu.unmsm.fisi.gestiondocente.docente.entity.Teacher teacher) { this.teacher = teacher; }
+
+    public pe.edu.unmsm.fisi.gestiondocente.periodo.entity.AcademicPeriod getAcademicPeriod() { return academicPeriod; }
+    public void setAcademicPeriod(pe.edu.unmsm.fisi.gestiondocente.periodo.entity.AcademicPeriod academicPeriod) { this.academicPeriod = academicPeriod; }
+
+    public CertificationType getCertificateType() { return certificateType; }
+    public void setCertificateType(CertificationType certificateType) { this.certificateType = certificateType; }
 
     public String getDocumentPath() { return documentPath; }
     public void setDocumentPath(String documentPath) { this.documentPath = documentPath; }

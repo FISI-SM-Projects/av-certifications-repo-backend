@@ -9,7 +9,7 @@ import pe.edu.unmsm.fisi.gestiondocente.docente.mapper.DocenteMapper;
 import pe.edu.unmsm.fisi.gestiondocente.docente.repository.DocenteRepository;
 
 @Service
-@org.springframework.context.annotation.Profile("demo")
+@org.springframework.context.annotation.Profile("test")
 public class DocenteService {
 
     private final DocenteRepository docenteRepository;

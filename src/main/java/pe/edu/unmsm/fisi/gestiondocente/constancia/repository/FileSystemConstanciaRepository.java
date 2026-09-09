@@ -32,7 +32,7 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.StorageException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.validation.StoragePathSanitizer;
 
 @Repository("fileSystemConstanciaRepository")
-@org.springframework.context.annotation.Profile("demo")
+@org.springframework.context.annotation.Profile("test")
 public class FileSystemConstanciaRepository implements CertificateGenerationRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemConstanciaRepository.class);

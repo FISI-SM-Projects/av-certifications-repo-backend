@@ -27,6 +27,11 @@ El backend queda disponible por defecto en:
 http://localhost:8080
 ```
 
+Para uso real local se requiere PostgreSQL institucional y arranque seguro con
+`SPRING_JPA_HIBERNATE_DDL_AUTO=validate` y `SPRING_SQL_INIT_MODE=never`.
+La autenticacion usa Spring Security, LDAP y JWT; no existe modo demo funcional
+en la interfaz de producto.
+
 ## Arquitectura
 
 `src/main/java/pe/edu/unmsm/fisi/gestiondocente/`
@@ -66,6 +71,13 @@ Modulos previstos:
 
 - `application.properties`: configuracion base.
 - `fonts/`: fuentes usadas para generar PDFs.
+
+`database_postgresql/`
+
+- `av-database.sql`: esquema base aprobado.
+- `av_minimal_dev_data.sql`: datos minimos de desarrollo.
+- `migrations/`: cambios no destructivos versionados, incluida la distincion
+  `COURSE`/`SEMESTER` para certificaciones.
 
 `src/test/`
 

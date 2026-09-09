@@ -4,13 +4,12 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.service.InstitutionalCertificateService;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.InstitutionalCertificateResponse;
 import java.util.List;
 
 @RestController
-@Profile("!demo & !test")
+@Profile("!test")
 @RequestMapping("/api/v1/constancias")
 public class InstitutionalCertificateController {
     private final InstitutionalCertificateService service;
@@ -36,7 +35,9 @@ public class InstitutionalCertificateController {
         return service.generate(request, auth);
     }
     @PostMapping("/semestral")
-    public void semester() {
-        throw new ResponseStatusException(HttpStatus.CONFLICT, "La consolidacion semestral requiere soporte en el modelo institucional; disponible solo en demo");
+    @ResponseStatus(HttpStatus.CREATED)
+    public InstitutionalCertificateResponse semester(@RequestBody pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.SemesterCertificateRequest request,
+            Authentication auth) {
+        return service.generateSemester(request, auth);
     }
 }

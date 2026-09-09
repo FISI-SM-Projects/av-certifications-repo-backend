@@ -17,7 +17,7 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.InstitutionalCertificateR
 import pe.edu.unmsm.fisi.gestiondocente.cargadocente.repository.AcademicWorkloadRepository;
 
 @Service
-@Profile("!demo & !test")
+@Profile("!test")
 @Transactional(readOnly = true)
 public class InstitutionalTeacherService {
     private final TeacherRepository teachers;

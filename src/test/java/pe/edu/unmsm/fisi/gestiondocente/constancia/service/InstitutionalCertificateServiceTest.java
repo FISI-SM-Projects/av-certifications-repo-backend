@@ -88,7 +88,7 @@ class InstitutionalCertificateServiceTest {
         var cert = new Certification(); cert.setId(2L); cert.setAcademicWorkload(workload);
         cert.setStatus(CertificationStatus.REVOCADO); cert.setCreatedAt(LocalDateTime.of(2026, 9, 8, 10, 0));
         cert.setDocumentPath("missing.pdf"); rows.add(cert);
-        when(repo.findByAcademicWorkloadTeacherCodeOrderByIdDesc("00112233")).thenReturn(List.of(cert));
+        when(repo.findByTeacherCodeOrderByIdDesc("00112233")).thenReturn(List.of(cert));
         var item = service.list("00112233", auth).getFirst();
         assertEquals("REVOCADO", item.status()); assertEquals("2026-09-08T15:00:00Z", item.generatedAt().toString());
         assertFalse(item.pdfAvailable());

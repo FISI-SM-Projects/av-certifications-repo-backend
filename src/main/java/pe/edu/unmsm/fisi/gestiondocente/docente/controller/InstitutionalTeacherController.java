@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import pe.edu.unmsm.fisi.gestiondocente.docente.service.InstitutionalTeacherService;
 
 @RestController
-@Profile("!demo & !test")
+@Profile("!test")
 @RequestMapping("/api/v1")
 public class InstitutionalTeacherController {
     private final InstitutionalTeacherService service;

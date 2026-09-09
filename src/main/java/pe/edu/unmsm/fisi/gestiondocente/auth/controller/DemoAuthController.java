@@ -14,7 +14,7 @@ import pe.edu.unmsm.fisi.gestiondocente.auth.dto.DemoLoginResponse;
 import pe.edu.unmsm.fisi.gestiondocente.auth.service.DemoAuthService;
 import pe.edu.unmsm.fisi.gestiondocente.usuario.dto.UsuarioSesionDto;
 
-@Profile("demo")
+@Profile("test")
 @RestController
 @RequestMapping("/api/v1/auth")
 public class DemoAuthController {
