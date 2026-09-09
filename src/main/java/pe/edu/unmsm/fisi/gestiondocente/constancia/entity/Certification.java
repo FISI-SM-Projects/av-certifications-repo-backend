@@ -25,6 +25,9 @@ public class Certification {
     @Column(name = "document_path", nullable = false, length = 500)
     private String documentPath;
 
+    @Column(name = "content_hash", length = 64)
+    private String contentHash;
+
     @Column(name = "created_at")
     private java.time.LocalDateTime createdAt;
 
@@ -51,6 +54,9 @@ public class Certification {
 
     public String getDocumentPath() { return documentPath; }
     public void setDocumentPath(String documentPath) { this.documentPath = documentPath; }
+
+    public String getContentHash() { return contentHash; }
+    public void setContentHash(String contentHash) { this.contentHash = contentHash; }
 
     public java.time.LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(java.time.LocalDateTime createdAt) { this.createdAt = createdAt; }
