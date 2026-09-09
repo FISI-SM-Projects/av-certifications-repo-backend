@@ -101,6 +101,10 @@ public class InstitutionalCertificateService {
         var existing = certificates.findByAcademicWorkloadIdOrderById(w.getId());
         if (existing.stream().anyMatch(c -> c.getStatus() == CertificationStatus.VERIFICADO))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe una constancia verificada para esta carga");
+        var reusable = existing.stream().filter(this::isReusableCourseCertificate).reduce((first, second) -> second);
+        if (reusable.isPresent()) {
+            return response(reusable.get());
+        }
         var now = LocalDateTime.now(LIMA);
         var cert = new Certification();
         cert.setAcademicWorkload(w); cert.setDocumentPath(storage.newDocumentPath());
@@ -135,10 +139,10 @@ public class InstitutionalCertificateService {
         String teacherCode = input.getTeacherCode().trim();
         String semester = input.getSemester().trim();
         identity.requireTeacherAccess(auth, teacherCode);
-        var sourceRows = certificates.findByTeacherCodeAndAcademicPeriodSemesterCodeAndCertificateTypeOrderById(
+        var sourceRows = latestCourseCertificatesByWorkload(certificates.findByTeacherCodeAndAcademicPeriodSemesterCodeAndCertificateTypeOrderById(
                 teacherCode, semester, CertificationType.COURSE).stream()
                 .filter(c -> c.getStatus() == CertificationStatus.EMITIDO || c.getStatus() == CertificationStatus.VERIFICADO)
-                .toList();
+                .toList());
         if (sourceRows.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "No existen constancias por curso validas para consolidar este periodo");
@@ -153,6 +157,10 @@ public class InstitutionalCertificateService {
                 teacher.getId(), period.getId(), CertificationType.SEMESTER);
         if (existing.stream().anyMatch(c -> c.getStatus() == CertificationStatus.VERIFICADO)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe una constancia semestral verificada para este periodo");
+        }
+        var reusable = existing.stream().filter(this::isReusableSemesterCertificate).reduce((older, newer) -> newer);
+        if (reusable.isPresent()) {
+            return response(reusable.get());
         }
         var now = LocalDateTime.now(LIMA);
         var cert = new Certification();
@@ -208,6 +216,24 @@ public class InstitutionalCertificateService {
         return new SemesterCertificateSource(c.getId().toString(), "workload-" + w.getId(), w.getCourse().getCode(),
                 w.getCourse().getName(), w.getSection().toString(), w.getSchool().name(), w.getPlan().toString(),
                 c.getStatus() == CertificationStatus.VERIFICADO ? EstadoConstancia.APROBADO : EstadoConstancia.GENERADO);
+    }
+    private List<Certification> latestCourseCertificatesByWorkload(List<Certification> rows) {
+        Map<Long, Certification> latestByWorkload = new LinkedHashMap<>();
+        for (Certification certification : rows) {
+            var workload = certification.getAcademicWorkload();
+            if (workload != null && workload.getId() != null) {
+                latestByWorkload.put(workload.getId(), certification);
+            }
+        }
+        return new ArrayList<>(latestByWorkload.values());
+    }
+    private boolean isReusableCourseCertificate(Certification c) {
+        return c.getCertificateType() == CertificationType.COURSE
+                && (c.getStatus() == CertificationStatus.EMITIDO || c.getStatus() == CertificationStatus.EN_REVISION);
+    }
+    private boolean isReusableSemesterCertificate(Certification c) {
+        return c.getCertificateType() == CertificationType.SEMESTER
+                && (c.getStatus() == CertificationStatus.EMITIDO || c.getStatus() == CertificationStatus.EN_REVISION);
     }
     private String teacherCode(Certification c) {
         return c.getTeacher() != null ? c.getTeacher().getCode() : c.getAcademicWorkload().getTeacher().getCode();

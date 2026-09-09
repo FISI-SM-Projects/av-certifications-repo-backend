@@ -76,6 +76,7 @@ Modulos previstos:
 
 - `av-database.sql`: esquema base aprobado.
 - `av_minimal_dev_data.sql`: datos minimos de desarrollo.
+- `dev/av_minimal_dev_data_clean.sql`: reset local DEV/TEST para una demostracion coherente.
 - `migrations/`: cambios no destructivos versionados, incluida la distincion
   `COURSE`/`SEMESTER` para certificaciones.
 

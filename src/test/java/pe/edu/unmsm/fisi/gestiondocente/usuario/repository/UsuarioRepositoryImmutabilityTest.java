@@ -18,7 +18,7 @@ class UsuarioRepositoryImmutabilityTest {
 
         Usuario posterior = repository.findById(1L).orElseThrow();
 
-        assertThat(posterior.getTeacherCode()).isEqualTo("082026");
+        assertThat(posterior.getTeacherCode()).isEqualTo("22200101");
         assertThat(posterior.getNombreCompleto()).isNull();
     }
 }

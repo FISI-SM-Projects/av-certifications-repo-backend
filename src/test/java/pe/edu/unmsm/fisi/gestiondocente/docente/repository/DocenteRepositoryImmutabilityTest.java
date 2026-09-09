@@ -12,13 +12,13 @@ class DocenteRepositoryImmutabilityTest {
 
     @Test
     void modificarDocenteRecibidoNoDebeAlterarRepositorio() {
-        Docente docente = repository.findByCodigo("082026").orElseThrow();
+        Docente docente = repository.findByCodigo("22200101").orElseThrow();
         docente.setCodigo("ALTERADO");
         docente.setCorreoInstitucional("otro@unmsm.edu.pe");
 
-        Docente posterior = repository.findByCodigo("082026").orElseThrow();
+        Docente posterior = repository.findByCodigo("22200101").orElseThrow();
 
-        assertThat(posterior.getCodigo()).isEqualTo("082026");
-        assertThat(posterior.getCorreoInstitucional()).isEqualTo("jperez@unmsm.edu.pe");
+        assertThat(posterior.getCodigo()).isEqualTo("22200101");
+        assertThat(posterior.getCorreoInstitucional()).isEqualTo("lalarconl@unmsm.edu.pe");
     }
 }

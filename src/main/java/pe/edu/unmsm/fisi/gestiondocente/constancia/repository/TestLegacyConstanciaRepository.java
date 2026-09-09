@@ -10,9 +10,9 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.EstadoConstancia;
 
 @Repository
 @org.springframework.context.annotation.Profile("test")
-public class DemoConstanciaRepository implements LegacyConstanciaRepository {
+public class TestLegacyConstanciaRepository implements LegacyConstanciaRepository {
 
-    // Repositorio legacy usado solo por compatibilidad con pruebas y datos demo previos.
+    // Repositorio legacy usado solo por compatibilidad con pruebas de capa antigua.
     // Los perfiles consolidados deben obtener constancias desde FileSystemConstanciaRepository.
     @Override
     public List<Constancia> findByDocenteId(Long docenteId) {
@@ -22,7 +22,7 @@ public class DemoConstanciaRepository implements LegacyConstanciaRepository {
                         "Constancia de cumplimiento en Aula Virtual",
                         EstadoConstancia.GENERADO,
                         LocalDate.of(2026, 6, 20),
-                        "/constancias/demo-2026-I.pdf",
+                        "/constancias/fixture-2026-I.pdf",
                         1L,
                         1L
                 ),
@@ -31,7 +31,7 @@ public class DemoConstanciaRepository implements LegacyConstanciaRepository {
                         "Constancia de cumplimiento en Aula Virtual",
                         EstadoConstancia.APROBADO,
                         LocalDate.of(2025, 12, 10),
-                        "/constancias/demo-2025-II.pdf",
+                        "/constancias/fixture-2025-II.pdf",
                         1L,
                         2L
                 )

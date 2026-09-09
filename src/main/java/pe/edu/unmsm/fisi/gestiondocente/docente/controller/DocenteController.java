@@ -22,9 +22,9 @@ public class DocenteController {
         this.docenteProfileQueryService = docenteProfileQueryService;
     }
 
-    @GetMapping("/demo/perfil")
-    public DocentePerfilResponse obtenerPerfilDocenteDemo() {
-        return docenteProfileQueryService.obtenerPerfilDemo();
+    @GetMapping("/default/perfil")
+    public DocentePerfilResponse obtenerPerfilDocenteDefault() {
+        return docenteProfileQueryService.obtenerPerfilDefault();
     }
 
     @GetMapping("/{teacherCode}/perfil")

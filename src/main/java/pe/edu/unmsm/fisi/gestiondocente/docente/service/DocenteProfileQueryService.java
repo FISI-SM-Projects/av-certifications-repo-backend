@@ -29,9 +29,9 @@ public class DocenteProfileQueryService {
         this.constanciaQueryService = constanciaQueryService;
     }
 
-    public DocentePerfilResponse obtenerPerfilDemo() {
-        Docente docente = docenteRepository.findDemoDocente()
-                .orElseThrow(() -> new DocenteNotFoundException("No se encontro el docente demo"));
+    public DocentePerfilResponse obtenerPerfilDefault() {
+        Docente docente = docenteRepository.findDefaultDocente()
+                .orElseThrow(() -> new DocenteNotFoundException("No se encontro el docente por defecto de pruebas"));
         return construirPerfilDocente(docente);
     }
 

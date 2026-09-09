@@ -17,7 +17,10 @@ INSERT INTO "course" ("code", "name", "description")
 VALUES
 ('202W0701', 'Ingeniería de Software I', 'Fundamentos de desarrollo y ciclos de vida'),
 ('202W0702', 'Bases de Datos I', 'Diseño y administración de BD'),
-('202W0703', 'Arquitectura de Software', 'Patrones y diseño de sistemas distribuidos');
+('202W0703', 'Arquitectura de Software', 'Patrones y diseño de sistemas distribuidos'),
+('202W0704', 'Calidad de Software', 'Aseguramiento, metricas y pruebas de software'),
+('202W0705', 'Gestión de Proyectos de Software', 'Planificacion y seguimiento de proyectos de software'),
+('202W0706', 'Ingeniería de Requisitos', 'Elicitacion, analisis y gestion de requisitos');
 
 
 -- 2. Personas (Admin, Docente)
@@ -51,27 +54,26 @@ VALUES
 INSERT INTO "teacher"
 ("person_id", "code", "moodle_id", "department")
 VALUES
-(2, 22200100, 45, 'CC'),
-(3, 22200101, 46, 'CC'),
-(4, 22200102, 47, 'SW');
+(2, '22200100', 45, 'CC'),
+(3, '22200101', 46, 'CC'),
+(4, '22200102', 47, 'SW');
 
 
 -- 6. Carga Académica
 INSERT INTO "academic_workload"
 ("course_id", "academic_period_id", "teacher_id", "moodle_id", "cycle", "section", "school", "plan")
 VALUES
-(1,1,2,100,8,1,'SW',2018),
-(1,1,3,101,8,2,'SW',2018),
-(2,1,2,102,9,1,'SW',2018),
-(1,1,3,103,9,2,'SW',2018),
-(3,1,2,104,10,1,'SW',2018);
-
+(1,1,2,1001,8,1,'SW',2018),
+(2,1,2,1002,9,1,'SW',2018),
+(3,1,2,1003,10,1,'SW',2018),
+(4,1,2,1004,8,1,'SW',2018),
+(5,1,2,1005,9,1,'SW',2018),
+(6,1,2,1006,10,1,'SW',2018),
+(1,1,1,2001,8,2,'SW',2018),
+(2,1,3,2002,9,2,'SW',2018);
 
 -- 9. Certificaciones
-INSERT INTO "certification"
-("academic_workload_id", "document_path", "status")
-VALUES
-(1, '/storage/certs/2026-1/CERT-202W0701-S1.pdf', 'EMITIDO'),
-(3, '/storage/certs/2026-1/CERT-202W0702-S1.pdf', 'VERIFICADO');
+-- El dataset minimo inicia sin constancias para evitar rutas PDF inexistentes
+-- y permitir una demostracion limpia de generacion COURSE y SEMESTER desde la UI.
 
 COMMIT;

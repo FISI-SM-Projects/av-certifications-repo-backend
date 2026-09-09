@@ -22,9 +22,9 @@ class ConstanciaRepositoryArchitectureTest {
     }
 
     @Test
-    void demoNoDebeImplementarRepositorioDeGeneracionesNiSerPrimary() {
-        assertThat(CertificateGenerationRepository.class.isAssignableFrom(DemoConstanciaRepository.class)).isFalse();
-        assertThat(DemoConstanciaRepository.class.isAnnotationPresent(Primary.class)).isFalse();
+    void legacyDePruebasNoDebeImplementarRepositorioDeGeneracionesNiSerPrimary() {
+        assertThat(CertificateGenerationRepository.class.isAssignableFrom(TestLegacyConstanciaRepository.class)).isFalse();
+        assertThat(TestLegacyConstanciaRepository.class.isAnnotationPresent(Primary.class)).isFalse();
     }
 
     @Test
@@ -38,13 +38,13 @@ class ConstanciaRepositoryArchitectureTest {
     void serviciosRealesDebenDependerDelRepositorioDeGeneraciones() {
         assertThat(repositoryFieldTypes(CourseCertificateService.class))
                 .contains(CertificateGenerationRepository.class)
-                .doesNotContain(DemoConstanciaRepository.class, LegacyConstanciaRepository.class);
+                .doesNotContain(TestLegacyConstanciaRepository.class, LegacyConstanciaRepository.class);
         assertThat(repositoryFieldTypes(SemesterCertificateService.class))
                 .contains(CertificateGenerationRepository.class)
-                .doesNotContain(DemoConstanciaRepository.class, LegacyConstanciaRepository.class);
+                .doesNotContain(TestLegacyConstanciaRepository.class, LegacyConstanciaRepository.class);
         assertThat(repositoryFieldTypes(ConstanciaQueryService.class))
                 .contains(CertificateGenerationRepository.class)
-                .doesNotContain(DemoConstanciaRepository.class, LegacyConstanciaRepository.class);
+                .doesNotContain(TestLegacyConstanciaRepository.class, LegacyConstanciaRepository.class);
     }
 
     private static Class<?>[] repositoryFieldTypes(Class<?> serviceType) {

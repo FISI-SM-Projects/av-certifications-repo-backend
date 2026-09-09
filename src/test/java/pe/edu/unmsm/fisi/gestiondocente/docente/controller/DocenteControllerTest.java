@@ -39,17 +39,17 @@ class DocenteControllerTest {
     }
 
     @Test
-    void perfilDocenteDemoDebeMantenerDatosPersonalesYSinConstanciasDemo() throws Exception {
-        mockMvc.perform(get("/api/v1/docentes/demo/perfil"))
+    void perfilDocenteDefaultDebeMantenerDatosPersonalesYSinConstanciasLegacy() throws Exception {
+        mockMvc.perform(get("/api/v1/docentes/default/perfil"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.docente.codigo").value("082026"))
-                .andExpect(jsonPath("$.docente.nombres").value("Juan Carlos"))
-                .andExpect(jsonPath("$.docente.apellidos").value("Pérez Gómez"))
-                .andExpect(jsonPath("$.docente.departamentoAcademico").value("Ingeniería de Software"))
+                .andExpect(jsonPath("$.docente.codigo").value("22200101"))
+                .andExpect(jsonPath("$.docente.nombres").value("Luis Alberto"))
+                .andExpect(jsonPath("$.docente.apellidos").value("Alarcon Loayza"))
+                .andExpect(jsonPath("$.docente.departamentoAcademico").value("Ciencia de la Computación"))
                 .andExpect(jsonPath("$.docente.escuelaProfesional").doesNotExist())
                 .andExpect(jsonPath("$.constancias").isArray())
                 .andExpect(jsonPath("$.constancias.length()").value(0))
-                .andExpect(content().string(not(containsString("demo-2026-I.pdf"))));
+                .andExpect(content().string(not(containsString("fixture-2026-I.pdf"))));
     }
 
     @Test
@@ -98,26 +98,26 @@ class DocenteControllerTest {
     }
 
     @Test
-    void perfilPorCodigoValidoDebeDevolverJuanCarlos() throws Exception {
-        mockMvc.perform(get("/api/v1/docentes/082026/perfil"))
+    void perfilPorCodigoValidoDebeDevolverLalarconl() throws Exception {
+        mockMvc.perform(get("/api/v1/docentes/22200101/perfil"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.docente.codigo").value("082026"))
-                .andExpect(jsonPath("$.docente.nombres").value("Juan Carlos"))
+                .andExpect(jsonPath("$.docente.codigo").value("22200101"))
+                .andExpect(jsonPath("$.docente.nombres").value("Luis Alberto"))
                 .andExpect(jsonPath("$.constancias").isArray())
                 .andExpect(jsonPath("$.constancias.length()").value(0))
-                .andExpect(jsonPath("$.docente.apellidos").value("Pérez Gómez"))
-                .andExpect(jsonPath("$.docente.departamentoAcademico").value("Ingeniería de Software"));
+                .andExpect(jsonPath("$.docente.apellidos").value("Alarcon Loayza"))
+                .andExpect(jsonPath("$.docente.departamentoAcademico").value("Ciencia de la Computación"));
     }
 
     @Test
-    void perfilPorCodigoValidoDeOtroDepartamentoDebeDevolverCarlosRamos() throws Exception {
-        mockMvc.perform(get("/api/v1/docentes/082028/perfil"))
+    void perfilPorCodigoValidoDeOtroDepartamentoDebeDevolverCarlosNavarro() throws Exception {
+        mockMvc.perform(get("/api/v1/docentes/22200102/perfil"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.docente.codigo").value("082028"))
+                .andExpect(jsonPath("$.docente.codigo").value("22200102"))
                 .andExpect(jsonPath("$.constancias").isArray())
-                .andExpect(jsonPath("$.docente.nombres").value("Carlos Alberto"))
-                .andExpect(jsonPath("$.docente.apellidos").value("Ramos Silva"))
-                .andExpect(jsonPath("$.docente.departamentoAcademico").value("Ciencia de la Computación"));
+                .andExpect(jsonPath("$.docente.nombres").value("Carlos Edmundo"))
+                .andExpect(jsonPath("$.docente.apellidos").value("Navarro Depaz"))
+                .andExpect(jsonPath("$.docente.departamentoAcademico").value("Ingeniería de Software"));
     }
 
     @Test

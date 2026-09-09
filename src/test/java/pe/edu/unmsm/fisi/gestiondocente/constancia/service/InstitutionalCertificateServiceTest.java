@@ -62,6 +62,20 @@ class InstitutionalCertificateServiceTest {
         assertEquals("workload-5", result.certificateKey()); assertEquals(1, result.version());
         assertTrue(storage.available(rows.getFirst().getDocumentPath()));
     }
+    @Test void existingEmittedCourseCertificateIsReused() {
+        var emitted = new Certification(); emitted.setId(9L); emitted.setAcademicWorkload(workload);
+        emitted.setTeacher(workload.getTeacher()); emitted.setAcademicPeriod(workload.getAcademicPeriod());
+        emitted.setCertificateType(CertificationType.COURSE); emitted.setStatus(CertificationStatus.EMITIDO);
+        emitted.setCreatedAt(LocalDateTime.of(2026, 9, 9, 10, 0)); emitted.setDocumentPath("missing.pdf");
+        rows.add(emitted);
+
+        var result = service.generate(new InstitutionalCertificateService.GenerateRequest(5L, null, null, null), auth);
+
+        assertEquals("9", result.generationId());
+        assertEquals(1, result.version());
+        verify(repo, never()).saveAndFlush(any());
+        verifyNoInteractions(pdf);
+    }
     @Test void failedTransactionCleansOnlyItsPdf() {
         service.generate(new InstitutionalCertificateService.GenerateRequest(5L, null, null, null), auth);
         var path = rows.getFirst().getDocumentPath();

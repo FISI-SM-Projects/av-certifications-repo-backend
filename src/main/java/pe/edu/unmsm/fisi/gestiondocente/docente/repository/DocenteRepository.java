@@ -12,34 +12,34 @@ import pe.edu.unmsm.fisi.gestiondocente.docente.entity.Docente;
 @org.springframework.context.annotation.Profile("test")
 public class DocenteRepository {
 
-    private static final List<Docente> DOCENTES_DEMO = List.of(
+    private static final List<Docente> DOCENTES_TEST = List.of(
             new Docente(
                     1L,
-                    "082026",
-                    "Juan Carlos",
-                    "Pérez Gómez",
-                    "jperez@unmsm.edu.pe",
-                    "Ingeniería de Software",
+                    "22200100",
+                    "Lazaro Florian",
+                    "Mota Alva",
+                    "lmotaa@unmsm.edu.pe",
+                    "Ciencia de la Computación",
                     "Asociado",
                     "Nombrado"
             ),
             new Docente(
                     2L,
-                    "082027",
-                    "María Elena",
-                    "Torres Rojas",
-                    "mtorres@unmsm.edu.pe",
-                    "Ingeniería de Software",
+                    "22200101",
+                    "Luis Alberto",
+                    "Alarcon Loayza",
+                    "lalarconl@unmsm.edu.pe",
+                    "Ciencia de la Computación",
                     "Auxiliar",
                     "Contratado"
             ),
             new Docente(
                     3L,
-                    "082028",
-                    "Carlos Alberto",
-                    "Ramos Silva",
-                    "cramos@unmsm.edu.pe",
-                    "Ciencia de la Computación",
+                    "22200102",
+                    "Carlos Edmundo",
+                    "Navarro Depaz",
+                    "cnavarrod@unmsm.edu.pe",
+                    "Ingeniería de Software",
                     "Asociado",
                     "Nombrado"
             ),
@@ -49,9 +49,9 @@ public class DocenteRepository {
                     "Jos\u00e9 Mu\u00f1oz",
                     "Pe\u00f1a",
                     "jmunoz@unmsm.edu.pe",
-                    "Aula Virtual Simulado",
-                    "Demo",
-                    "Simulado"
+                    "Ciencia de la Computación",
+                    "Asociado",
+                    "Nombrado"
             ),
             new Docente(
                     5L,
@@ -59,24 +59,24 @@ public class DocenteRepository {
                     "Ana",
                     "Torres Lima",
                     "atorres@unmsm.edu.pe",
-                    "Aula Virtual Simulado",
-                    "Demo",
-                    "Simulado"
+                    "Ingeniería de Software",
+                    "Auxiliar",
+                    "Contratado"
             )
     );
 
     public List<Docente> findAll() {
-        return DOCENTES_DEMO.stream()
+        return DOCENTES_TEST.stream()
                 .map(DocenteRepository::copyOf)
                 .toList();
     }
 
-    public Optional<Docente> findDemoDocente() {
-        return findByCodigo("082026");
+    public Optional<Docente> findDefaultDocente() {
+        return findByCodigo("22200101");
     }
 
     public List<Docente> findByDepartamentoAcademico(String departamentoAcademico) {
-        return DOCENTES_DEMO.stream()
+        return DOCENTES_TEST.stream()
                 .filter(docente -> docente.getDepartamentoAcademico().equals(departamentoAcademico))
                 .map(DocenteRepository::copyOf)
                 .toList();
@@ -85,7 +85,7 @@ public class DocenteRepository {
     public Optional<Docente> findByCodigo(String codigo) {
         String normalizedCodigo = codigo == null ? "" : codigo.trim().toUpperCase(Locale.ROOT);
 
-        return DOCENTES_DEMO.stream()
+        return DOCENTES_TEST.stream()
                 .filter(docente -> docente.getCodigo().equalsIgnoreCase(normalizedCodigo))
                 .map(DocenteRepository::copyOf)
                 .findFirst();

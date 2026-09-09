@@ -96,42 +96,42 @@ class DocenteProfileConsistencyIntegrationTest {
 
     @Test
     void perfilYListadoDebenMostrarLaMismaUltimaVersionPorCurso() throws Exception {
-        postCourse(courseJson("082026", "32BGNYGF", "1", "Ingenieria y Gestion de Proyectos"))
+        postCourse(courseJson("22200101", "32BGNYGF", "1", "Ingenieria y Gestion de Proyectos"))
                 .andExpect(status().isCreated());
-        postCourse(courseJson("082026", "32BGNYGF", "1", "Ingenieria y Gestion de Proyectos"))
+        postCourse(courseJson("22200101", "32BGNYGF", "1", "Ingenieria y Gestion de Proyectos"))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(get("/api/v1/constancias/docentes/082026"))
+        mockMvc.perform(get("/api/v1/constancias/docentes/22200101"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].generationId").value("082026-32BGNYGF-1-26.1-v002"))
+                .andExpect(jsonPath("$[0].generationId").value("22200101-32BGNYGF-1-26.1-v002"))
                 .andExpect(jsonPath("$[0].version").value(2));
 
-        mockMvc.perform(get("/api/v1/docentes/082026/perfil"))
+        mockMvc.perform(get("/api/v1/docentes/22200101/perfil"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.docente.codigo").value("082026"))
+                .andExpect(jsonPath("$.docente.codigo").value("22200101"))
                 .andExpect(jsonPath("$.constancias.length()").value(1))
-                .andExpect(jsonPath("$.constancias[0].generationId").value("082026-32BGNYGF-1-26.1-v002"))
-                .andExpect(jsonPath("$.constancias[0].certificateKey").value("082026-32BGNYGF-1-26.1"))
+                .andExpect(jsonPath("$.constancias[0].generationId").value("22200101-32BGNYGF-1-26.1-v002"))
+                .andExpect(jsonPath("$.constancias[0].certificateKey").value("22200101-32BGNYGF-1-26.1"))
                 .andExpect(jsonPath("$.constancias[0].version").value(2))
                 .andExpect(jsonPath("$.constancias[0].type").value("CURSO"))
                 .andExpect(jsonPath("$.constancias[0].status").value("GENERADO"))
-                .andExpect(content().string(not(containsString("082026-32BGNYGF-1-26.1-v001"))))
-                .andExpect(content().string(not(containsString("demo-2026-I.pdf"))));
+                .andExpect(content().string(not(containsString("22200101-32BGNYGF-1-26.1-v001"))))
+                .andExpect(content().string(not(containsString("fixture-2026-I.pdf"))));
     }
 
     @Test
     void perfilDebeMostrarConstanciaSemestralReal() throws Exception {
-        postCourse(courseJson("082026", "32BGNYGF", "1", "Arquitectura de Software"))
+        postCourse(courseJson("22200101", "32BGNYGF", "1", "Arquitectura de Software"))
                 .andExpect(status().isCreated());
-        postCourse(courseJson("082026", "32SW001", "2", "Ingenieria de Requisitos"))
+        postCourse(courseJson("22200101", "32SW001", "2", "Ingenieria de Requisitos"))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/v1/constancias/semestral")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "teacher_code": "082026",
+                                  "teacher_code": "22200101",
                                   "semester": "26.1",
                                   "expected_courses": [
                                     { "code": "32BGNYGF", "section": "1" },
@@ -140,40 +140,40 @@ class DocenteProfileConsistencyIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.generationId").value("082026-26.1-v001"))
+                .andExpect(jsonPath("$.generationId").value("22200101-26.1-v001"))
                 .andExpect(jsonPath("$.type").value("SEMESTRAL"));
 
-        mockMvc.perform(get("/api/v1/docentes/082026/perfil"))
+        mockMvc.perform(get("/api/v1/docentes/22200101/perfil"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.constancias.length()").value(3))
                 .andExpect(jsonPath("$.constancias[?(@.type == 'SEMESTRAL')].generationId")
-                        .value("082026-26.1-v001"))
+                        .value("22200101-26.1-v001"))
                 .andExpect(content().string(containsString("\"courseCode\":null")))
                 .andExpect(content().string(containsString("\"section\":null")));
     }
 
     @Test
     void perfilesDebenSepararDocentesYPermitirListaVacia() throws Exception {
-        postCourse(courseJson("082026", "32BGNYGF", "1", "Arquitectura de Software"))
+        postCourse(courseJson("22200101", "32BGNYGF", "1", "Arquitectura de Software"))
                 .andExpect(status().isCreated());
-        postCourse(courseJson("082028", "32CC001", "1", "Algoritmos Avanzados"))
+        postCourse(courseJson("22200102", "32CC001", "1", "Algoritmos Avanzados"))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(get("/api/v1/docentes/082026/perfil"))
+        mockMvc.perform(get("/api/v1/docentes/22200101/perfil"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("082026-32BGNYGF-1-26.1-v001")))
-                .andExpect(content().string(not(containsString("082028-32CC001-1-26.1-v001"))));
+                .andExpect(content().string(containsString("22200101-32BGNYGF-1-26.1-v001")))
+                .andExpect(content().string(not(containsString("22200102-32CC001-1-26.1-v001"))));
 
-        mockMvc.perform(get("/api/v1/docentes/082028/perfil"))
+        mockMvc.perform(get("/api/v1/docentes/22200102/perfil"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("082028-32CC001-1-26.1-v001")))
-                .andExpect(content().string(not(containsString("082026-32BGNYGF-1-26.1-v001"))));
+                .andExpect(content().string(containsString("22200102-32CC001-1-26.1-v001")))
+                .andExpect(content().string(not(containsString("22200101-32BGNYGF-1-26.1-v001"))));
 
-        mockMvc.perform(get("/api/v1/docentes/082027/perfil"))
+        mockMvc.perform(get("/api/v1/docentes/22200100/perfil"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.docente.codigo").value("082027"))
+                .andExpect(jsonPath("$.docente.codigo").value("22200100"))
                 .andExpect(jsonPath("$.constancias.length()").value(0))
-                .andExpect(content().string(not(containsString("demo-2026-I.pdf"))));
+                .andExpect(content().string(not(containsString("fixture-2026-I.pdf"))));
     }
 
     private org.springframework.test.web.servlet.ResultActions postCourse(String json) throws Exception {
@@ -184,16 +184,16 @@ class DocenteProfileConsistencyIntegrationTest {
 
     private String courseJson(String teacherCode, String courseCode, String section, String subject) {
         String fullName = switch (teacherCode) {
-            case "082026" -> "Juan Carlos P\u00e9rez G\u00f3mez";
-            case "082027" -> "Mar\u00eda Elena Torres Rojas";
-            case "082028" -> "Carlos Alberto Ramos Silva";
-            default -> "Juan Carlos P\u00e9rez G\u00f3mez";
+            case "22200101" -> "Luis Alberto Alarcon Loayza";
+            case "22200100" -> "Lazaro Florian Mota Alva";
+            case "22200102" -> "Carlos Edmundo Navarro Depaz";
+            default -> "Luis Alberto Alarcon Loayza";
         };
         String email = switch (teacherCode) {
-            case "082026" -> "jperez@unmsm.edu.pe";
-            case "082027" -> "mtorres@unmsm.edu.pe";
-            case "082028" -> "cramos@unmsm.edu.pe";
-            default -> "jperez@unmsm.edu.pe";
+            case "22200101" -> "lalarconl@unmsm.edu.pe";
+            case "22200100" -> "lmotaa@unmsm.edu.pe";
+            case "22200102" -> "cnavarrod@unmsm.edu.pe";
+            default -> "lalarconl@unmsm.edu.pe";
         };
 
         return """

@@ -13,12 +13,12 @@ import pe.edu.unmsm.fisi.gestiondocente.periodo.entity.PeriodoAcademico;
 public class PeriodoAcademicoRepository {
 
     public Optional<PeriodoAcademico> findById(Long id) {
-        return periodosDemo().stream()
+        return periodosTest().stream()
                 .filter(periodo -> periodo.getId().equals(id))
                 .findFirst();
     }
 
-    private List<PeriodoAcademico> periodosDemo() {
+    private List<PeriodoAcademico> periodosTest() {
         return List.of(
                 new PeriodoAcademico(
                         1L,

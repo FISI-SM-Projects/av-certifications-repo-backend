@@ -12,10 +12,10 @@ import pe.edu.unmsm.fisi.gestiondocente.usuario.entity.Usuario;
 @org.springframework.context.annotation.Profile("test")
 public class UsuarioRepository {
 
-    private static final List<Usuario> USUARIOS_DEMO = List.of(
-            new Usuario(1L, "082026", null, null, RolUsuario.DOCENTE, null, "082026"),
-            new Usuario(2L, "082027", null, null, RolUsuario.DOCENTE, null, "082027"),
-            new Usuario(3L, "082028", null, null, RolUsuario.DOCENTE, null, "082028"),
+    private static final List<Usuario> USUARIOS_TEST = List.of(
+            new Usuario(1L, "22200101", null, null, RolUsuario.DOCENTE, null, "22200101"),
+            new Usuario(2L, "22200100", null, null, RolUsuario.DOCENTE, null, "22200100"),
+            new Usuario(3L, "22200102", null, null, RolUsuario.DOCENTE, null, "22200102"),
             new Usuario(
                     4L,
                     "DIR-ISW",
@@ -43,7 +43,7 @@ public class UsuarioRepository {
     );
 
     public List<Usuario> findAll() {
-        return USUARIOS_DEMO.stream()
+        return USUARIOS_TEST.stream()
                 .map(UsuarioRepository::copyOf)
                 .toList();
     }
@@ -55,7 +55,7 @@ public class UsuarioRepository {
 
         String emailBuscado = email.trim();
 
-        return USUARIOS_DEMO.stream()
+        return USUARIOS_TEST.stream()
                 .filter(usuario -> usuario.getEmail() != null)
                 .filter(usuario -> usuario.getEmail().equalsIgnoreCase(emailBuscado))
                 .findFirst()
@@ -67,7 +67,7 @@ public class UsuarioRepository {
             return Optional.empty();
         }
 
-        return USUARIOS_DEMO.stream()
+        return USUARIOS_TEST.stream()
                 .filter(usuario -> usuario.getId().equals(id))
                 .findFirst()
                 .map(UsuarioRepository::copyOf);
