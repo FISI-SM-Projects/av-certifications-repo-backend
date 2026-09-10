@@ -16,6 +16,8 @@ import pe.edu.unmsm.fisi.gestiondocente.shared.response.DefaultResponse;
 import pe.edu.unmsm.fisi.gestiondocente.teacher.dto.TeacherProfile;
 import pe.edu.unmsm.fisi.gestiondocente.teacher.service.TeacherService;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/teachers")
@@ -32,11 +34,12 @@ public class TeacherController {
 
     @GetMapping("/me/courses")
     @PreAuthorize("hasRole('DOCENTE')")
-    public ResponseEntity<DefaultResponse<Page<AcademicWorkloadDTO>>> getMyCourses(
+    public ResponseEntity<DefaultResponse<List<AcademicWorkloadDTO>>> getMyCourses(
             @AuthenticationPrincipal UserPrincipal principal,
             @PageableDefault(page = 0, size = 2) Pageable pageable) {
 
-        Page<AcademicWorkloadDTO> courses = teacherService.getCoursesByTeacherPersonId(principal.personId(), pageable);
-        return ResponseEntity.ok(DefaultResponse.success("Cursos asignados al docente", courses));
+        Page<AcademicWorkloadDTO> coursesPage = teacherService.getCoursesByTeacherPersonId(principal.personId(), pageable);
+
+        return ResponseEntity.ok(DefaultResponse.success("Cursos asignados al docente", coursesPage));
     }
 }
