@@ -3,12 +3,14 @@ package pe.edu.unmsm.fisi.gestiondocente.teacher.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pe.edu.unmsm.fisi.gestiondocente.academic.dto.AcademicWorkloadDTO;
 import pe.edu.unmsm.fisi.gestiondocente.auth.dto.UserPrincipal;
@@ -36,9 +38,23 @@ public class TeacherController {
     @PreAuthorize("hasRole('DOCENTE')")
     public ResponseEntity<DefaultResponse<List<AcademicWorkloadDTO>>> getMyCourses(
             @AuthenticationPrincipal UserPrincipal principal,
-            @PageableDefault(page = 0, size = 2) Pageable pageable) {
+            @RequestParam(required = false) Integer cycle,
+            @RequestParam(required = false) Integer plan,
+            @RequestParam(required = false) String semester,
+            @RequestParam(required = false) String course,
+            @PageableDefault(
+                sort = {"academicPeriod.startDate", "cycle", "course.name", "section"},
+                direction = Sort.Direction.ASC
+            ) Pageable pageable) {
 
-        Page<AcademicWorkloadDTO> coursesPage = teacherService.getCoursesByTeacherPersonId(principal.personId(), pageable);
+        Page<AcademicWorkloadDTO> coursesPage = teacherService.getCoursesByTeacherPersonId(
+            principal.personId(),
+            cycle,
+            plan,
+            semester,
+            course,
+            pageable
+        );
 
         return ResponseEntity.ok(DefaultResponse.success("Cursos asignados al docente", coursesPage));
     }

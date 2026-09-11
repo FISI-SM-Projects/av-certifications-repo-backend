@@ -3,6 +3,8 @@ package pe.edu.unmsm.fisi.gestiondocente.teacher.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.edu.unmsm.fisi.gestiondocente.academic.dto.AcademicWorkloadDTO;
@@ -44,10 +46,35 @@ public class TeacherService {
     }
 
     @Transactional(readOnly = true)
-    public Page<AcademicWorkloadDTO> getCoursesByTeacherPersonId(Long personId, Pageable pageable) {
+    public Page<AcademicWorkloadDTO> getCoursesByTeacherPersonId(
+        Long personId,
+        Integer cycle,
+        Integer plan,
+        String semester,
+        String course,
+        Pageable pageable
+    ) {
         if (personId == null) {
             throw new IllegalArgumentException("El identificador de persona no puede ser nulo");
         }
-        return workloadRepository.findCoursesByTeacherPersonId(personId, pageable);
+
+        if (pageable.getSort().isUnsorted()) {
+            Sort defaultSort = Sort.by(
+                Sort.Order.desc("academicPeriod.startDate"),
+                Sort.Order.asc("cycle"),
+                Sort.Order.asc("course.name"),
+                Sort.Order.asc("section")
+            );
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), defaultSort);
+        }
+
+        return workloadRepository.findCoursesByTeacherPersonId(
+            personId,
+            cycle,
+            plan,
+            semester,
+            course,
+            pageable
+        );
     }
 }
