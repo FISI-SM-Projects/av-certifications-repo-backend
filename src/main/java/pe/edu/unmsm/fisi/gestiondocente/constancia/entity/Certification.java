@@ -1,6 +1,8 @@
 package pe.edu.unmsm.fisi.gestiondocente.constancia.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "certification")
@@ -27,6 +29,28 @@ public class Certification {
 
     @Column(name = "content_hash", length = 64)
     private String contentHash;
+
+    @Column(name = "version_number")
+    private Integer versionNumber;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "academic_snapshot_json", columnDefinition = "jsonb")
+    private String academicSnapshotJson;
+
+    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "generated_by_account_id")
+    private pe.edu.unmsm.fisi.gestiondocente.auth.entity.InstitutionalAccount generatedByAccount;
+
+    @Column(name = "generated_at")
+    private java.time.LocalDateTime generatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "signed_by_account_id")
+    private pe.edu.unmsm.fisi.gestiondocente.auth.entity.InstitutionalAccount signedByAccount;
+
+    @Column(name = "signed_at")
+    private java.time.LocalDateTime signedAt;
+
+    @Column(name = "signed_document_path", length = 500)
+    private String signedDocumentPath;
 
     @Column(name = "created_at")
     private java.time.LocalDateTime createdAt;
@@ -57,6 +81,27 @@ public class Certification {
 
     public String getContentHash() { return contentHash; }
     public void setContentHash(String contentHash) { this.contentHash = contentHash; }
+
+    public Integer getVersionNumber() { return versionNumber; }
+    public void setVersionNumber(Integer versionNumber) { this.versionNumber = versionNumber; }
+
+    public String getAcademicSnapshotJson() { return academicSnapshotJson; }
+    public void setAcademicSnapshotJson(String academicSnapshotJson) { this.academicSnapshotJson = academicSnapshotJson; }
+
+    public pe.edu.unmsm.fisi.gestiondocente.auth.entity.InstitutionalAccount getGeneratedByAccount() { return generatedByAccount; }
+    public void setGeneratedByAccount(pe.edu.unmsm.fisi.gestiondocente.auth.entity.InstitutionalAccount generatedByAccount) { this.generatedByAccount = generatedByAccount; }
+
+    public java.time.LocalDateTime getGeneratedAt() { return generatedAt; }
+    public void setGeneratedAt(java.time.LocalDateTime generatedAt) { this.generatedAt = generatedAt; }
+
+    public pe.edu.unmsm.fisi.gestiondocente.auth.entity.InstitutionalAccount getSignedByAccount() { return signedByAccount; }
+    public void setSignedByAccount(pe.edu.unmsm.fisi.gestiondocente.auth.entity.InstitutionalAccount signedByAccount) { this.signedByAccount = signedByAccount; }
+
+    public java.time.LocalDateTime getSignedAt() { return signedAt; }
+    public void setSignedAt(java.time.LocalDateTime signedAt) { this.signedAt = signedAt; }
+
+    public String getSignedDocumentPath() { return signedDocumentPath; }
+    public void setSignedDocumentPath(String signedDocumentPath) { this.signedDocumentPath = signedDocumentPath; }
 
     public java.time.LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(java.time.LocalDateTime createdAt) { this.createdAt = createdAt; }

@@ -72,7 +72,7 @@ class InstitutionalCertificateServiceTest {
     @Test void generationUsesRealWorkloadAndRegistersDocumentPath() {
         var result = service.generate(new InstitutionalCertificateService.GenerateRequest(5L, null, null, null), auth);
         assertEquals("7", result.generationId()); assertEquals("00112233", result.teacherCode());
-        assertEquals("EMITIDO", result.status()); assertTrue(result.pdfAvailable());
+        assertEquals("GENERADA", result.status()); assertTrue(result.pdfAvailable());
         assertEquals("workload-5", result.certificateKey()); assertEquals(1, result.version());
         assertNotNull(courseRows.getFirst().getContentHash());
         assertTrue(storage.available(courseRows.getFirst().getDocumentPath()));

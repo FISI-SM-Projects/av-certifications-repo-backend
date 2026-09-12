@@ -80,6 +80,12 @@ Modulos previstos:
 - `migrations/`: cambios no destructivos versionados, incluida la distincion
   `COURSE`/`SEMESTER` para certificaciones.
 
+## Reglas de constancias
+
+El flujo institucional usa los estados funcionales `GENERADA` y `FIRMADA`. `EMITIDO` se migra conceptualmente a `GENERADA` y `VERIFICADO` a `FIRMADA` para compatibilidad con datos previos.
+
+Cada constancia guarda versiones. COURSE versiona por carga academica y SEMESTER por docente + periodo. La regeneracion solo crea una nueva version si la ultima no esta `FIRMADA` y cambio el contenido academico representado en `academic_snapshot_json` y `content_hash`; fecha de generacion, version, ruta del PDF y metadata tecnica no cuentan como cambio. El director firma constancias de docentes de su departamento y esa firma bloquea nuevas versiones de esa misma constancia logica.
+
 `src/test/`
 
 - Pruebas unitarias e integrales del backend.

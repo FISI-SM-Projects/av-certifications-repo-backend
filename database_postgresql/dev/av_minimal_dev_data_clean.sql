@@ -23,7 +23,8 @@ RESTART IDENTITY CASCADE;
 INSERT INTO system_role (code, name, description, active)
 VALUES
     ('ADMIN', 'Administrador', 'Acceso total al sistema de constancias', true),
-    ('DOCENTE', 'Docente', 'Docente titular de carga academica', true);
+    ('DOCENTE', 'Docente', 'Docente titular de carga academica', true),
+    ('DIRECTOR', 'Director', 'Director de departamento academico', true);
 
 INSERT INTO academic_period (semester_code, name, description, start_date, end_date)
 VALUES
@@ -56,7 +57,7 @@ VALUES
 INSERT INTO account_system_role (account_id, system_role_id, granted_by_account_id, active)
 VALUES
     (1, 1, 1, true),
-    (2, 2, 1, true),
+    (2, 3, 1, true),
     (3, 2, 1, true),
     (4, 2, 1, true);
 

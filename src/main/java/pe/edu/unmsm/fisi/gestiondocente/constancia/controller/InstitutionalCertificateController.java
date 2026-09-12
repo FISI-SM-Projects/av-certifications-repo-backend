@@ -40,4 +40,8 @@ public class InstitutionalCertificateController {
             Authentication auth) {
         return service.generateSemester(request, auth);
     }
+    @PostMapping("/{generationId}/firma")
+    public InstitutionalCertificateResponse sign(@PathVariable String generationId, Authentication auth) {
+        return service.sign(generationId, auth);
+    }
 }

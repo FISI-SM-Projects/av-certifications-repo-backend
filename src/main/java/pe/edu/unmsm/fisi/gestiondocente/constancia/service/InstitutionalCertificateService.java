@@ -43,7 +43,7 @@ public class InstitutionalCertificateService {
     }
     public List<InstitutionalCertificateResponse> list(String code, Authentication auth) {
         identity.requireTeacherAccess(auth, code);
-        return certificates.findByTeacherCodeOrderByIdDesc(code).stream().map(this::response).toList();
+        return latestVisibleCertificates(certificates.findByTeacherCodeOrderByIdDesc(code)).stream().map(this::response).toList();
     }
     public InstitutionalCertificateResponse detail(String id, Authentication auth) { return response(find(id, auth)); }
     public byte[] readPdf(String id, Authentication auth) { return storage.read(find(id, auth).getDocumentPath()); }
@@ -90,7 +90,7 @@ public class InstitutionalCertificateService {
             workloadId = matches.get(0).getId();
         }
         var w = workloads.findLockedById(workloadId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Carga academica no encontrada"));
-        identity.requireTeacherAccess(auth, w.getTeacher().getCode());
+        identity.requireCertificateGenerationAccess(auth, w.getTeacher().getCode());
         var actor = identity.account(auth);
         var teacher = w.getTeacher();
         var account = accounts.findByPersonIdOrderByMainDescIdAsc(teacher.getPerson().getId()).stream()
@@ -102,18 +102,23 @@ public class InstitutionalCertificateService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La identidad no coincide con el docente registrado");
         }
         var existing = certificates.findByAcademicWorkloadIdOrderById(w.getId());
-        if (existing.stream().anyMatch(c -> c.getStatus() == CertificationStatus.VERIFICADO))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe una constancia verificada para esta carga");
-        String contentHash = courseContentHash(w);
-        var latestRegenerable = existing.stream().filter(this::isRegenerableCourseCertificate).reduce((first, second) -> second);
-        if (latestRegenerable.isPresent() && hasSameContent(latestRegenerable.get(), contentHash)) {
-            return response(latestRegenerable.get());
+        String snapshot = courseSnapshot(w);
+        String contentHash = contentHash(snapshot);
+        var latest = existing.stream().reduce((first, second) -> second);
+        if (latest.isPresent() && isSigned(latest.get())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "La ultima version de esta constancia ya esta firmada");
         }
+        if (latest.isPresent() && isGenerated(latest.get()) && hasSameContent(latest.get(), contentHash)) {
+            return response(latest.get());
+        }
+        int version = nextVersion(existing);
         var now = LocalDateTime.now(LIMA);
         var cert = new Certification();
         cert.setAcademicWorkload(w); cert.setDocumentPath(storage.newDocumentPath());
         cert.setTeacher(teacher); cert.setAcademicPeriod(w.getAcademicPeriod()); cert.setCertificateType(CertificationType.COURSE);
-        cert.setStatus(CertificationStatus.EMITIDO); cert.setContentHash(contentHash); cert.setCreatedAt(now); cert.setUpdatedAt(now);
+        cert.setStatus(CertificationStatus.GENERADA); cert.setVersionNumber(version);
+        cert.setAcademicSnapshotJson(snapshot); cert.setContentHash(contentHash);
+        cert.setGeneratedByAccount(actor); cert.setGeneratedAt(now); cert.setCreatedAt(now); cert.setUpdatedAt(now);
         certificates.saveAndFlush(cert);
         var request = new CourseCertificateRequest(
                 new TeacherPayload(teacher.getPerson().getFullName(), account.getInstitutionalEmail(), teacher.getCode()),
@@ -121,7 +126,7 @@ public class InstitutionalCertificateService {
                         w.getSection().toString(), w.getSchool().name(), w.getPlan().toString(), w.getAcademicPeriod().getSemesterCode()),
                 new IssuerPayload("FISI", actor.getId().toString(), actor.getInstitutionalEmail()));
         var metadata = new CertificateGenerationMetadata(cert.getId().toString(), "workload-" + w.getId(),
-                existing.size() + 1, TipoConstancia.CURSO, EstadoConstancia.GENERADO, teacher.getCode(),
+                version, TipoConstancia.CURSO, EstadoConstancia.GENERADO, teacher.getCode(),
                 w.getCourse().getCode(), w.getSection().toString(), w.getAcademicPeriod().getSemesterCode(),
                 now.atZone(LIMA).toInstant(), "request.json", "certificate.pdf");
         byte[] bytes = pdf.generateCourseCertificate(request, metadata);
@@ -142,10 +147,11 @@ public class InstitutionalCertificateService {
         }
         String teacherCode = input.getTeacherCode().trim();
         String semester = input.getSemester().trim();
-        identity.requireTeacherAccess(auth, teacherCode);
+        identity.requireCertificateGenerationAccess(auth, teacherCode);
+        var actor = identity.account(auth);
         var sourceRows = latestCourseCertificatesByWorkload(certificates.findByTeacherCodeAndAcademicPeriodSemesterCodeAndCertificateTypeOrderById(
                 teacherCode, semester, CertificationType.COURSE).stream()
-                .filter(c -> c.getStatus() == CertificationStatus.EMITIDO || c.getStatus() == CertificationStatus.VERIFICADO)
+                .filter(c -> isGenerated(c) || isSigned(c))
                 .toList());
         if (sourceRows.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
@@ -159,25 +165,29 @@ public class InstitutionalCertificateService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT, "Docente sin cuenta institucional activa"));
         var existing = certificates.findByTeacherIdAndAcademicPeriodIdAndCertificateTypeOrderById(
                 teacher.getId(), period.getId(), CertificationType.SEMESTER);
-        if (existing.stream().anyMatch(c -> c.getStatus() == CertificationStatus.VERIFICADO)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe una constancia semestral verificada para este periodo");
+        String snapshot = semesterSnapshot(sourceRows);
+        String contentHash = contentHash(snapshot);
+        var latest = existing.stream().reduce((older, newer) -> newer);
+        if (latest.isPresent() && isSigned(latest.get())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "La ultima version semestral ya esta firmada");
         }
-        String contentHash = semesterContentHash(sourceRows);
-        var latestRegenerable = existing.stream().filter(this::isRegenerableSemesterCertificate).reduce((older, newer) -> newer);
-        if (latestRegenerable.isPresent() && hasSameContent(latestRegenerable.get(), contentHash)) {
-            return response(latestRegenerable.get());
+        if (latest.isPresent() && isGenerated(latest.get()) && hasSameContent(latest.get(), contentHash)) {
+            return response(latest.get());
         }
+        int version = nextVersion(existing);
         var now = LocalDateTime.now(LIMA);
         var cert = new Certification();
         cert.setCertificateType(CertificationType.SEMESTER); cert.setTeacher(teacher); cert.setAcademicPeriod(period);
         cert.setAcademicWorkload(null); cert.setDocumentPath(storage.newDocumentPath());
-        cert.setStatus(CertificationStatus.EMITIDO); cert.setContentHash(contentHash); cert.setCreatedAt(now); cert.setUpdatedAt(now);
+        cert.setStatus(CertificationStatus.GENERADA); cert.setVersionNumber(version);
+        cert.setAcademicSnapshotJson(snapshot); cert.setContentHash(contentHash);
+        cert.setGeneratedByAccount(actor); cert.setGeneratedAt(now); cert.setCreatedAt(now); cert.setUpdatedAt(now);
         certificates.saveAndFlush(cert);
         var sourceSummary = new SemesterCertificateSourceSummary(
                 teacher.getCode(), teacher.getPerson().getFullName(), account.getInstitutionalEmail(), semester,
                 sourceRows.stream().map(this::source).toList());
         var metadata = new CertificateGenerationMetadata(cert.getId().toString(), semesterKey(teacher.getCode(), semester),
-                existing.size() + 1, TipoConstancia.SEMESTRAL, EstadoConstancia.GENERADO, teacher.getCode(),
+                version, TipoConstancia.SEMESTRAL, EstadoConstancia.GENERADO, teacher.getCode(),
                 null, null, semester, now.atZone(LIMA).toInstant(), "request.json", "certificate.pdf");
         byte[] bytes = pdf.generateSemesterCertificate(sourceSummary, metadata);
         storage.write(cert.getDocumentPath(), bytes);
@@ -188,14 +198,38 @@ public class InstitutionalCertificateService {
         });
         return response(cert);
     }
+    @Transactional
+    public InstitutionalCertificateResponse sign(String id, Authentication auth) {
+        var cert = certificates.findById(parseId(id))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Constancia no encontrada"));
+        identity.requireDirectorSignature(auth, teacherCode(cert));
+        if (!isLatestVersion(cert)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Solo se firma la ultima version vigente");
+        }
+        if (isSigned(cert)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "La constancia ya esta firmada");
+        }
+        if (!isGenerated(cert)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Solo se firman constancias generadas");
+        }
+        var now = LocalDateTime.now(LIMA);
+        cert.setStatus(CertificationStatus.FIRMADA);
+        cert.setSignedByAccount(identity.account(auth));
+        cert.setSignedAt(now);
+        cert.setUpdatedAt(now);
+        certificates.saveAndFlush(cert);
+        return response(cert);
+    }
     private InstitutionalCertificateResponse response(Certification c) {
         var w = c.getAcademicWorkload();
         var history = c.getCertificateType() == CertificationType.SEMESTER
                 ? certificates.findByTeacherIdAndAcademicPeriodIdAndCertificateTypeOrderById(
                         c.getTeacher().getId(), c.getAcademicPeriod().getId(), CertificationType.SEMESTER)
                 : certificates.findByAcademicWorkloadIdOrderById(w.getId());
-        int version = 1;
-        for (int i = 0; i < history.size(); i++) if (history.get(i).getId().equals(c.getId())) { version = i + 1; break; }
+        int version = c.getVersionNumber() == null ? 1 : c.getVersionNumber();
+        if (c.getVersionNumber() == null) {
+            for (int i = 0; i < history.size(); i++) if (history.get(i).getId().equals(c.getId())) { version = i + 1; break; }
+        }
         return response(c, version);
     }
     private InstitutionalCertificateResponse response(Certification c, int version) {
@@ -206,13 +240,13 @@ public class InstitutionalCertificateService {
         if (c.getCertificateType() == CertificationType.SEMESTER) {
             return new InstitutionalCertificateResponse(c.getId().toString(), semesterKey(teacher.getCode(), period.getSemesterCode()),
                     version, "SEMESTRAL", "SEMESTER", status(c), teacher.getCode(), null, null, period.getSemesterCode(),
-                    c.getCreatedAt() == null ? null : c.getCreatedAt().atZone(LIMA).toInstant(),
+                    generatedInstant(c),
                     url + "/pdf", url + "/download", null, teacher.getPerson().getFullName(),
                     storage.available(c.getDocumentPath()));
         }
         return new InstitutionalCertificateResponse(c.getId().toString(), "workload-" + w.getId(), version, "CURSO", "COURSE",
                 status(c), teacher.getCode(), w.getCourse().getCode(), w.getSection().toString(), period.getSemesterCode(),
-                c.getCreatedAt() == null ? null : c.getCreatedAt().atZone(LIMA).toInstant(),
+                generatedInstant(c),
                 url + "/pdf", url + "/download", w.getCourse().getName(), teacher.getPerson().getFullName(),
                 storage.available(c.getDocumentPath()));
     }
@@ -220,7 +254,7 @@ public class InstitutionalCertificateService {
         var w = c.getAcademicWorkload();
         return new SemesterCertificateSource(c.getId().toString(), "workload-" + w.getId(), w.getCourse().getCode(),
                 w.getCourse().getName(), w.getSection().toString(), w.getSchool().name(), w.getPlan().toString(),
-                c.getStatus() == CertificationStatus.VERIFICADO ? EstadoConstancia.APROBADO : EstadoConstancia.GENERADO);
+                isSigned(c) ? EstadoConstancia.APROBADO : EstadoConstancia.GENERADO);
     }
     private List<Certification> latestCourseCertificatesByWorkload(List<Certification> rows) {
         Map<Long, Certification> latestByWorkload = new LinkedHashMap<>();
@@ -232,56 +266,65 @@ public class InstitutionalCertificateService {
         }
         return new ArrayList<>(latestByWorkload.values());
     }
-    private boolean isRegenerableCourseCertificate(Certification c) {
-        return c.getCertificateType() == CertificationType.COURSE
-                && (c.getStatus() == CertificationStatus.EMITIDO || c.getStatus() == CertificationStatus.EN_REVISION);
-    }
-    private boolean isRegenerableSemesterCertificate(Certification c) {
-        return c.getCertificateType() == CertificationType.SEMESTER
-                && (c.getStatus() == CertificationStatus.EMITIDO || c.getStatus() == CertificationStatus.EN_REVISION);
-    }
     private boolean hasSameContent(Certification existing, String currentContentHash) {
         String storedHash = existing.getContentHash();
         if (storedHash == null || storedHash.isBlank()) {
-            storedHash = existing.getCertificateType() == CertificationType.SEMESTER
-                    ? semesterContentHash(List.of())
-                    : existing.getAcademicWorkload() == null ? "" : courseContentHash(existing.getAcademicWorkload());
+            storedHash = existing.getAcademicSnapshotJson() == null ? "" : contentHash(existing.getAcademicSnapshotJson());
         }
         return storedHash.equals(currentContentHash);
     }
-    private String courseContentHash(AcademicWorkload w) {
+    private String courseSnapshot(AcademicWorkload w) {
         var teacher = w.getTeacher();
         var person = teacher.getPerson();
         var course = w.getCourse();
         var period = w.getAcademicPeriod();
-        return contentHash("COURSE",
-                teacher.getCode(),
-                person == null ? "" : person.getFullName(),
-                period == null ? "" : period.getSemesterCode(),
-                course == null ? "" : course.getCode(),
-                course == null ? "" : course.getName(),
-                Objects.toString(w.getSection(), ""),
-                Objects.toString(w.getCycle(), ""),
-                w.getSchool() == null ? "" : w.getSchool().name(),
-                Objects.toString(w.getPlan(), ""));
+        return jsonObject(
+                "certificateType", "COURSE",
+                "teacherCode", teacher.getCode(),
+                "teacherFullName", person == null ? "" : person.getFullName(),
+                "department", teacher.getDepartment() == null ? "" : teacher.getDepartment().name(),
+                "academicPeriod", period == null ? "" : period.getSemesterCode(),
+                "courseCode", course == null ? "" : course.getCode(),
+                "courseName", course == null ? "" : course.getName(),
+                "cycle", Objects.toString(w.getCycle(), ""),
+                "section", Objects.toString(w.getSection(), ""),
+                "school", w.getSchool() == null ? "" : w.getSchool().name(),
+                "plan", Objects.toString(w.getPlan(), ""),
+                "workloadId", Objects.toString(w.getId(), ""));
     }
-    private String semesterContentHash(List<Certification> sourceRows) {
-        List<String> sourceFingerprints = sourceRows.stream()
+    private String semesterSnapshot(List<Certification> sourceRows) {
+        var first = sourceRows.get(0);
+        var teacher = first.getTeacher();
+        var period = first.getAcademicPeriod();
+        String courses = sourceRows.stream()
                 .sorted(Comparator.comparing(c -> c.getAcademicWorkload().getId()))
-                .map(c -> String.join("|",
-                        Objects.toString(c.getId(), ""),
-                        Objects.toString(c.getAcademicWorkload().getId(), ""),
-                        Objects.toString(c.getContentHash(), courseContentHash(c.getAcademicWorkload())),
-                        c.getStatus() == null ? "" : c.getStatus().name()))
-                .toList();
-        return contentHash("SEMESTER", String.join(";", sourceFingerprints));
+                .map(c -> {
+                    var w = c.getAcademicWorkload();
+                    return jsonObject(
+                            "academicWorkloadId", Objects.toString(w.getId(), ""),
+                            "courseCode", w.getCourse().getCode(),
+                            "courseName", w.getCourse().getName(),
+                            "cycle", Objects.toString(w.getCycle(), ""),
+                            "section", Objects.toString(w.getSection(), ""),
+                            "school", w.getSchool().name(),
+                            "plan", Objects.toString(w.getPlan(), ""),
+                            "sourceCourseCertificationId", Objects.toString(c.getId(), ""),
+                            "sourceCourseContentHash", Objects.toString(c.getContentHash(), ""),
+                            "sourceCourseVersion", Objects.toString(versionOf(c), ""));
+                })
+                .reduce((left, right) -> left + "," + right).orElse("");
+        return "{\"certificateType\":\"SEMESTER\",\"teacherCode\":\"" + escapeJson(teacher.getCode())
+                + "\",\"teacherFullName\":\"" + escapeJson(teacher.getPerson().getFullName())
+                + "\",\"department\":\"" + escapeJson(teacher.getDepartment() == null ? "" : teacher.getDepartment().name())
+                + "\",\"academicPeriod\":\"" + escapeJson(period.getSemesterCode())
+                + "\",\"courses\":[" + courses + "]}";
     }
-    private String contentHash(String... parts) {
+    private String contentHash(String value) {
         try {
             var digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(String.join("\u001F", parts).getBytes(StandardCharsets.UTF_8));
+            byte[] hash = digest.digest(value.getBytes(StandardCharsets.UTF_8));
             var output = new StringBuilder(hash.length * 2);
-            for (byte value : hash) output.append(String.format("%02x", value));
+            for (byte item : hash) output.append(String.format("%02x", item));
             return output.toString();
         } catch (NoSuchAlgorithmException ex) {
             throw new IllegalStateException("SHA-256 no disponible", ex);
@@ -290,6 +333,52 @@ public class InstitutionalCertificateService {
     private String teacherCode(Certification c) {
         return c.getTeacher() != null ? c.getTeacher().getCode() : c.getAcademicWorkload().getTeacher().getCode();
     }
+    private List<Certification> latestVisibleCertificates(List<Certification> rows) {
+        Map<String, Certification> latest = new LinkedHashMap<>();
+        rows.stream().sorted(Comparator.comparing(Certification::getId)).forEach(c -> latest.put(logicalKey(c), c));
+        return latest.values().stream().sorted(Comparator.comparing(Certification::getId).reversed()).toList();
+    }
+    private String logicalKey(Certification c) {
+        if (c.getCertificateType() == CertificationType.SEMESTER) {
+            return "semester-" + c.getTeacher().getId() + "-" + c.getAcademicPeriod().getId();
+        }
+        return "workload-" + c.getAcademicWorkload().getId();
+    }
+    private boolean isLatestVersion(Certification c) {
+        var history = c.getCertificateType() == CertificationType.SEMESTER
+                ? certificates.findByTeacherIdAndAcademicPeriodIdAndCertificateTypeOrderById(
+                        c.getTeacher().getId(), c.getAcademicPeriod().getId(), CertificationType.SEMESTER)
+                : certificates.findByAcademicWorkloadIdOrderById(c.getAcademicWorkload().getId());
+        return !history.isEmpty() && history.getLast().getId().equals(c.getId());
+    }
+    private int nextVersion(List<Certification> history) {
+        return history.stream().map(Certification::getVersionNumber).filter(Objects::nonNull).max(Integer::compareTo)
+                .orElse(history.size()) + 1;
+    }
+    private int versionOf(Certification certification) {
+        if (certification.getVersionNumber() != null) return certification.getVersionNumber();
+        var history = certificates.findByAcademicWorkloadIdOrderById(certification.getAcademicWorkload().getId());
+        for (int i = 0; i < history.size(); i++) if (history.get(i).getId().equals(certification.getId())) return i + 1;
+        return 1;
+    }
+    private boolean isGenerated(Certification c) { return c.getStatus() != null && c.getStatus().isGenerated(); }
+    private boolean isSigned(Certification c) { return c.getStatus() != null && c.getStatus().isSigned(); }
+    private Instant generatedInstant(Certification c) {
+        var generatedAt = c.getGeneratedAt() != null ? c.getGeneratedAt() : c.getCreatedAt();
+        return generatedAt == null ? null : generatedAt.atZone(LIMA).toInstant();
+    }
+    private String jsonObject(String... keyValues) {
+        var builder = new StringBuilder("{");
+        for (int i = 0; i < keyValues.length; i += 2) {
+            if (i > 0) builder.append(',');
+            builder.append('"').append(escapeJson(keyValues[i])).append("\":\"")
+                    .append(escapeJson(keyValues[i + 1])).append('"');
+        }
+        return builder.append('}').toString();
+    }
+    private String escapeJson(String value) {
+        return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
     private String semesterKey(String teacherCode, String semester) { return "semester-" + teacherCode + "-" + semester; }
-    private String status(Certification c) { return c.getStatus() == null ? "NO_EMITIDO" : c.getStatus().name(); }
+    private String status(Certification c) { return c.getStatus() == null ? "GENERADA" : c.getStatus().official().name(); }
 }

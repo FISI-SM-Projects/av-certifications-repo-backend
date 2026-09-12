@@ -41,22 +41,63 @@ public class CurrentAccountService {
         var t = teachers.findByPersonId(a.getPerson().getId()).orElse(null);
         return new CurrentUserResponse(a.getId(), a.getPerson().getId(), a.getUsername(),
                 a.getInstitutionalEmail(), a.getPerson().getFullName(),
-                a.getAuthorities().stream().map(r -> r.getAuthority().replaceFirst("^ROLE_", "")).sorted().toList(),
+                normalizedRoles(a),
                 a.getAccountStatus().name(), a.getPerson().getRegisterState().name(),
                 t == null ? null : new CurrentUserResponse.TeacherContext(t.getId(), t.getCode(), t.getMoodleId(),
                         t.getDepartment() == null ? null : t.getDepartment().name()), null, null);
     }
     public void requireTeacherAccess(Authentication auth, String code) {
         var user = me(auth);
-        if (user.roles().contains("ADMIN") || user.roles().contains("DIRECTOR_ESCUELA")) return;
+        if (user.roles().contains("ADMIN")) return;
+        if (user.roles().contains("DIRECTOR")) {
+            var target = teachers.findByCode(code)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Docente no encontrado"));
+            if (user.teacher() != null && user.teacher().department() != null
+                    && target.getDepartment() != null
+                    && user.teacher().department().equals(target.getDepartment().name())) {
+                return;
+            }
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tiene permisos para consultar este docente");
+        }
         if (!user.roles().contains("DOCENTE") || user.teacher() == null || !user.teacher().teacherCode().equals(code)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tiene permisos para consultar este docente");
         }
     }
+    public void requireCertificateGenerationAccess(Authentication auth, String code) {
+        var user = me(auth);
+        if (user.roles().contains("DIRECTOR") && !user.roles().contains("ADMIN")) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El director no regenera constancias");
+        }
+        if (user.roles().contains("ADMIN")) return;
+        if (!user.roles().contains("DOCENTE") || user.teacher() == null || !user.teacher().teacherCode().equals(code)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tiene permisos para generar constancias de este docente");
+        }
+    }
+    public void requireDirectorSignature(Authentication auth, String teacherCode) {
+        var user = me(auth);
+        if (!user.roles().contains("DIRECTOR")) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el director puede firmar constancias");
+        }
+        var target = teachers.findByCode(teacherCode)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Docente no encontrado"));
+        if (user.teacher() == null || user.teacher().department() == null
+                || target.getDepartment() == null
+                || !user.teacher().department().equals(target.getDepartment().name())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El director solo puede firmar constancias de su departamento");
+        }
+    }
     public void requireManagement(Authentication auth) {
         var user = me(auth);
-        if (!user.roles().contains("ADMIN") && !user.roles().contains("DIRECTOR_ESCUELA")) {
+        if (!user.roles().contains("ADMIN") && !user.roles().contains("DIRECTOR")) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tiene permisos para consultar docentes");
         }
+    }
+    private java.util.List<String> normalizedRoles(InstitutionalAccount account) {
+        return account.getAuthorities().stream()
+                .map(r -> r.getAuthority().replaceFirst("^ROLE_", ""))
+                .map(role -> "DIRECTOR_ESCUELA".equals(role) ? "DIRECTOR" : role)
+                .distinct()
+                .sorted()
+                .toList();
     }
 }
