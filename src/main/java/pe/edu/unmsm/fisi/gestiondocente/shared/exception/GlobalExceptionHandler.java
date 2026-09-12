@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import pe.edu.unmsm.fisi.gestiondocente.shared.response.ErrorDetails;
 import pe.edu.unmsm.fisi.gestiondocente.shared.response.ErrorResponse;
@@ -48,6 +49,23 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex, WebRequest request) {
+        HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
+        HttpStatus resolvedStatus = status == null ? HttpStatus.INTERNAL_SERVER_ERROR : status;
+        String message = ex.getReason() == null || ex.getReason().isBlank()
+                ? resolvedStatus.getReasonPhrase()
+                : ex.getReason();
+
+        ErrorResponse errorResponse = ErrorResponseFactory.create(
+                resolvedStatus,
+                message,
+                request
+        );
+
+        return ResponseEntity.status(resolvedStatus).body(errorResponse);
     }
 
     @ExceptionHandler(Exception.class)

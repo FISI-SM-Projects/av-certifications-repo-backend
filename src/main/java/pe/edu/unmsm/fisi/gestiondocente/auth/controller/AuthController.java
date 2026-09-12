@@ -26,6 +26,6 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<DefaultResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = loginService.login(request);
-        return ResponseEntity.ok(DefaultResponse.success("Login exitoso", response));
+        return ResponseEntity.ok(DefaultResponse.success("Operación completada exitosamente", response));
     }
 }

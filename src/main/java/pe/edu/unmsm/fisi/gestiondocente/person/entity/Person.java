@@ -59,6 +59,7 @@ public class Person {
     public String getFirstName() { return firstName; }
     public String getPaternalLastName() { return paternalLastName; }
     public String getMaternalLastName() { return maternalLastName; }
+    public String getDni() { return dni; }
 
     public AccountStatus getRegisterState() {
         return registerState;
