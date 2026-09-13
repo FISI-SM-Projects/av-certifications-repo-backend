@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.awt.Color;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
@@ -41,6 +42,10 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
     private static final float TITLE_FONT_SIZE = 13F;
     private static final float FOOTER_FONT_SIZE = 8F;
     private static final float LEADING = 15F;
+    private static final float HEADER_BOTTOM_Y = PDRectangle.A4.getHeight() - 118F;
+    private static final Color UNMSM_RED = new Color(128, 0, 32);
+    private static final Color TABLE_HEADER_GRAY = new Color(238, 238, 238);
+    private static final Color TABLE_BORDER_GRAY = new Color(80, 80, 80);
     private static final Locale SPANISH = Locale.forLanguageTag("es");
     private static final ZoneId LIMA_ZONE = ZoneId.of("America/Lima");
 
@@ -100,7 +105,8 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
             document.addPage(page);
 
             try (PDPageContentStream content = new PDPageContentStream(document, page)) {
-                float y = PDRectangle.A4.getHeight() - MARGIN;
+                writeSignaturePageHeader(content, regularFont, boldFont);
+                float y = HEADER_BOTTOM_Y;
                 writeVisibleSignatureLine(content, "FIRMA VISIBLE INSTITUCIONAL", boldFont, 15F, MARGIN, y);
                 y -= 32F;
                 writeVisibleSignatureLine(content, "Firmado digitalmente por:", regularFont, 11F, MARGIN, y);
@@ -120,6 +126,7 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
                 y -= 18F;
                 writeVisibleSignatureLine(content, "Este bloque deja constancia visual de la aprobacion del director en el Sistema de Constancias FISI.",
                         regularFont, 9F, MARGIN, y);
+                writeSignaturePageFooter(content, regularFont);
             }
 
             document.save(outputStream);
@@ -134,7 +141,8 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
         TeacherPayload teacher = request.getTeacher();
         CoursePayload course = request.getCourse();
 
-        writer.writeCenteredTitle("CONSTANCIA DE ELABORACIÓN Y PUBLICACIÓN DE MATERIALES DIDÁCTICOS EN EL AULA VIRTUAL");
+        writer.writeCenteredTitle("CONSTANCIA DE CARGA ACADÉMICA");
+        writer.writeCenteredSubtitle("Elaboración y publicación de materiales didácticos en el Aula Virtual");
         writer.space(18F);
         writer.writeParagraph("A QUIEN CORRESPONDA:", true);
         writer.space(8F);
@@ -166,7 +174,7 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
         writer.writeParagraph("Oficina del Aula Virtual", false);
         writer.writeParagraph("Facultad de Ingeniería de Sistemas e Informática", false);
         writer.writeParagraph("Universidad Nacional Mayor de San Marcos", false);
-        writer.writeFooter("ID interno: " + metadata.getGenerationId()
+        writer.writeFooter("Documento emitido por el Sistema de Constancias FISI. ID interno: " + metadata.getGenerationId()
                 + " | Versión: v" + String.format("%03d", metadata.getVersion())
                 + " | Curso: " + course.getCode()
                 + " | Sección: " + course.getSection());
@@ -176,6 +184,7 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
             CertificateGenerationMetadata metadata) throws IOException {
         writer.writeCenteredTitle(
                 "CONSTANCIA SEMESTRAL DE ELABORACIÓN Y PUBLICACIÓN DE MATERIALES DIDÁCTICOS EN EL AULA VIRTUAL");
+        writer.writeCenteredSubtitle("Consolidado de constancias por curso registradas en el periodo académico");
         writer.space(16F);
         writer.writeParagraph("A QUIEN CORRESPONDA:", true);
         writer.space(8F);
@@ -196,7 +205,7 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
         writer.writeParagraph("Oficina del Aula Virtual", false);
         writer.writeParagraph("Facultad de Ingeniería de Sistemas e Informática", false);
         writer.writeParagraph("Universidad Nacional Mayor de San Marcos", false);
-        writer.writeFooter("ID interno: " + metadata.getGenerationId()
+        writer.writeFooter("Documento emitido por el Sistema de Constancias FISI. ID interno: " + metadata.getGenerationId()
                 + " | Versión: v" + String.format("%03d", metadata.getVersion())
                 + " | Periodo: " + sourceSummary.getSemester());
     }
@@ -267,6 +276,47 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
         content.newLineAtOffset(x, y);
         content.showText(stripAccents(text));
         content.endText();
+    }
+
+    private void writeSignaturePageHeader(PDPageContentStream content, PDFont regularFont, PDFont boldFont)
+            throws IOException {
+        float pageWidth = PDRectangle.A4.getWidth();
+        float pageHeight = PDRectangle.A4.getHeight();
+        float centerY = pageHeight - 36F;
+        content.setStrokingColor(UNMSM_RED);
+        content.setLineWidth(1.1F);
+        content.moveTo(MARGIN, pageHeight - 104F);
+        content.lineTo(pageWidth - MARGIN, pageHeight - 104F);
+        content.stroke();
+        content.setNonStrokingColor(UNMSM_RED);
+        content.addRect(MARGIN, pageHeight - 48F, 36F, 28F);
+        content.fill();
+        content.setNonStrokingColor(Color.WHITE);
+        writeVisibleSignatureLine(content, "UNMSM", boldFont, 7F, MARGIN + 4F, pageHeight - 36F);
+        content.setNonStrokingColor(Color.BLACK);
+        writeCenteredSignatureLine(content, "UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS", boldFont, 12F, centerY);
+        writeCenteredSignatureLine(content, "Universidad del Peru. Decana de America", regularFont, 9F, centerY - 14F);
+        writeCenteredSignatureLine(content, "FACULTAD DE INGENIERIA DE SISTEMAS E INFORMATICA", boldFont, 10F, centerY - 29F);
+        writeCenteredSignatureLine(content, "Sistema de Constancias Docentes - Aula Virtual FISI", regularFont, 8.5F, centerY - 43F);
+    }
+
+    private void writeSignaturePageFooter(PDPageContentStream content, PDFont regularFont) throws IOException {
+        float pageWidth = PDRectangle.A4.getWidth();
+        content.setStrokingColor(TABLE_BORDER_GRAY);
+        content.setLineWidth(0.5F);
+        content.moveTo(MARGIN, FOOTER_MARGIN + 19F);
+        content.lineTo(pageWidth - MARGIN, FOOTER_MARGIN + 19F);
+        content.stroke();
+        content.setNonStrokingColor(Color.BLACK);
+        writeVisibleSignatureLine(content,
+                "Documento firmado visualmente por el Sistema de Constancias FISI. Firma institucional no criptografica.",
+                regularFont, FOOTER_FONT_SIZE, MARGIN, FOOTER_MARGIN + 7F);
+    }
+
+    private void writeCenteredSignatureLine(PDPageContentStream content, String text, PDFont font, float fontSize,
+            float y) throws IOException {
+        float textWidth = font.getStringWidth(stripAccents(text)) / 1000F * fontSize;
+        writeVisibleSignatureLine(content, text, font, fontSize, (PDRectangle.A4.getWidth() - textWidth) / 2F, y);
     }
 
     private String signatureText(String value, String fallback) {
@@ -356,6 +406,16 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
             }
         }
 
+        void writeCenteredSubtitle(String text) throws IOException {
+            List<String> lines = wrapText(text, regularFont, 10F, pageWidth - (2 * MARGIN));
+            for (String line : lines) {
+                ensureSpace(12F);
+                float textWidth = stringWidth(line, regularFont, 10F);
+                writeText(line, regularFont, 10F, (pageWidth - textWidth) / 2F, y);
+                y -= 12F;
+            }
+        }
+
         void writeParagraph(String text, boolean bold) throws IOException {
             PDFont font = bold ? boldFont : regularFont;
             List<String> lines = wrapText(text, font, FONT_SIZE, pageWidth - (2 * MARGIN));
@@ -369,15 +429,11 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
         void writeTable(List<String[]> rows) throws IOException {
             float tableWidth = pageWidth - (2 * MARGIN);
             float firstColumnWidth = tableWidth * 0.76F;
-            float rowHeight = 20F;
+            float[] widths = new float[] { firstColumnWidth, tableWidth - firstColumnWidth };
 
             for (int i = 0; i < rows.size(); i++) {
-                ensureSpace(rowHeight + 4F);
                 String[] row = rows.get(i);
-                PDFont font = i == 0 ? boldFont : regularFont;
-                writeText(row[0], font, FONT_SIZE, MARGIN, y);
-                writeText(row[1], font, FONT_SIZE, MARGIN + firstColumnWidth, y);
-                y -= rowHeight;
+                drawTableRow(row, widths, i == 0, FONT_SIZE, 26F);
             }
         }
 
@@ -417,32 +473,8 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
         }
 
         private void writeSemesterTableRow(String[] values, float[] widths, boolean header) throws IOException {
-            PDFont font = header ? boldFont : regularFont;
             float fontSize = header ? 8.5F : 8F;
-            List<List<String>> wrappedCells = new ArrayList<>();
-            int maxLines = 1;
-
-            for (int i = 0; i < values.length; i++) {
-                List<String> lines = wrapText(values[i], font, fontSize, widths[i] - 4F);
-                wrappedCells.add(lines);
-                maxLines = Math.max(maxLines, lines.size());
-            }
-
-            float rowHeight = Math.max(28F, (maxLines * 10F) + 8F);
-            ensureSpace(rowHeight + 4F);
-            float x = MARGIN;
-
-            for (int i = 0; i < values.length; i++) {
-                List<String> lines = wrappedCells.get(i);
-                float lineY = y;
-                for (String line : lines) {
-                    writeText(line, font, fontSize, x, lineY);
-                    lineY -= 10F;
-                }
-                x += widths[i];
-            }
-
-            y -= rowHeight;
+            drawTableRow(values, widths, header, fontSize, 28F);
         }
 
         private boolean needsNewPageForSemesterRow(String[] values, float[] widths, boolean header) throws IOException {
@@ -462,6 +494,7 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
         void writeFooter(String text) throws IOException {
             float oldY = y;
             y = FOOTER_MARGIN;
+            writeInstitutionalFooter();
             List<String> lines = wrapText(text, regularFont, FOOTER_FONT_SIZE, pageWidth - (2 * MARGIN));
             for (String line : lines) {
                 writeText(line, regularFont, FOOTER_FONT_SIZE, MARGIN, y);
@@ -488,7 +521,101 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
             contentStream = new PDPageContentStream(document, page);
-            y = pageHeight - MARGIN;
+            writeInstitutionalHeader();
+            y = HEADER_BOTTOM_Y;
+        }
+
+        private void writeInstitutionalHeader() throws IOException {
+            float centerY = pageHeight - 36F;
+            contentStream.setStrokingColor(UNMSM_RED);
+            contentStream.setLineWidth(1.1F);
+            contentStream.moveTo(MARGIN, pageHeight - 104F);
+            contentStream.lineTo(pageWidth - MARGIN, pageHeight - 104F);
+            contentStream.stroke();
+            contentStream.setNonStrokingColor(UNMSM_RED);
+            contentStream.addRect(MARGIN, pageHeight - 48F, 36F, 28F);
+            contentStream.fill();
+            contentStream.setNonStrokingColor(Color.WHITE);
+            writeText("UNMSM", boldFont, 7F, MARGIN + 4F, pageHeight - 36F);
+            contentStream.setNonStrokingColor(Color.BLACK);
+            writeCenteredHeaderLine("UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS", boldFont, 12F, centerY);
+            writeCenteredHeaderLine("Universidad del Peru. Decana de America", regularFont, 9F, centerY - 14F);
+            writeCenteredHeaderLine("FACULTAD DE INGENIERIA DE SISTEMAS E INFORMATICA", boldFont, 10F, centerY - 29F);
+            writeCenteredHeaderLine("Sistema de Constancias Docentes - Aula Virtual FISI", regularFont, 8.5F, centerY - 43F);
+        }
+
+        private void writeInstitutionalFooter() throws IOException {
+            contentStream.setStrokingColor(TABLE_BORDER_GRAY);
+            contentStream.setLineWidth(0.5F);
+            contentStream.moveTo(MARGIN, FOOTER_MARGIN + 19F);
+            contentStream.lineTo(pageWidth - MARGIN, FOOTER_MARGIN + 19F);
+            contentStream.stroke();
+            contentStream.setNonStrokingColor(Color.BLACK);
+            writeText("Verifique la autenticidad del documento con el identificador interno y el registro institucional correspondiente.",
+                    regularFont, FOOTER_FONT_SIZE, MARGIN, FOOTER_MARGIN + 7F);
+        }
+
+        private void writeCenteredHeaderLine(String text, PDFont font, float fontSize, float lineY) throws IOException {
+            float textWidth = stringWidth(text, font, fontSize);
+            writeText(text, font, fontSize, (pageWidth - textWidth) / 2F, lineY);
+        }
+
+        private void drawTableRow(String[] values, float[] widths, boolean header, float fontSize, float minHeight)
+                throws IOException {
+            PDFont font = header ? boldFont : regularFont;
+            List<List<String>> wrappedCells = new ArrayList<>();
+            int maxLines = 1;
+            for (int i = 0; i < values.length; i++) {
+                List<String> lines = wrapText(values[i], font, fontSize, widths[i] - 10F);
+                wrappedCells.add(lines);
+                maxLines = Math.max(maxLines, lines.size());
+            }
+
+            float lineHeight = fontSize + 3F;
+            float rowHeight = Math.max(minHeight, (maxLines * lineHeight) + 10F);
+            ensureSpace(rowHeight + 4F);
+            float topY = y;
+            float bottomY = topY - rowHeight;
+
+            if (header) {
+                contentStream.setNonStrokingColor(TABLE_HEADER_GRAY);
+                contentStream.addRect(MARGIN, bottomY, totalWidth(widths), rowHeight);
+                contentStream.fill();
+                contentStream.setNonStrokingColor(Color.BLACK);
+            }
+
+            contentStream.setStrokingColor(TABLE_BORDER_GRAY);
+            contentStream.setLineWidth(0.65F);
+            float x = MARGIN;
+            contentStream.addRect(MARGIN, bottomY, totalWidth(widths), rowHeight);
+            contentStream.stroke();
+            for (int i = 0; i < widths.length - 1; i++) {
+                x += widths[i];
+                contentStream.moveTo(x, topY);
+                contentStream.lineTo(x, bottomY);
+                contentStream.stroke();
+            }
+
+            x = MARGIN;
+            for (int i = 0; i < values.length; i++) {
+                List<String> lines = wrappedCells.get(i);
+                float lineY = topY - 13F;
+                for (String line : lines) {
+                    writeText(line, font, fontSize, x + 5F, lineY);
+                    lineY -= lineHeight;
+                }
+                x += widths[i];
+            }
+
+            y -= rowHeight;
+        }
+
+        private float totalWidth(float[] widths) {
+            float total = 0F;
+            for (float width : widths) {
+                total += width;
+            }
+            return total;
         }
 
         private void ensureSpace(float requiredSpace) throws IOException {

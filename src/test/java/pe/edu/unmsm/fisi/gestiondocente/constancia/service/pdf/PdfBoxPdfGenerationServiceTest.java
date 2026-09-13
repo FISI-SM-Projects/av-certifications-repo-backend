@@ -12,7 +12,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdfparser.PDFStreamParser;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -20,6 +23,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import pe.edu.unmsm.fisi.gestiondocente.constancia.service.pdf.PdfGenerationService;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.SemesterCertificateSource;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.SemesterCertificateSourceSummary;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CourseCertificateRequest;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CoursePayload;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.IssuerPayload;
@@ -53,13 +58,30 @@ class PdfBoxPdfGenerationServiceTest {
         String text = extractText(pdf);
         String normalizedText = text.replaceAll("\\s+", " ");
 
-        assertThat(normalizedText).contains("CONSTANCIA DE ELABORACIÓN Y PUBLICACIÓN DE MATERIALES DIDÁCTICOS EN EL AULA VIRTUAL");
+        assertThat(normalizedText).contains("UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS");
+        assertThat(normalizedText).contains("Universidad del Peru. Decana de America");
+        assertThat(normalizedText).contains("FACULTAD DE INGENIERIA DE SISTEMAS E INFORMATICA");
+        assertThat(normalizedText).contains("Sistema de Constancias Docentes - Aula Virtual FISI");
+        assertThat(normalizedText).contains("CONSTANCIA DE CARGA ACADÉMICA");
         assertThat(text).contains("José Muñoz Peña");
         assertThat(text).contains("Ingeniería y Gestión de Proyectos");
         assertThat(text).contains("2026-I");
         assertThat(text).contains("Oficina del Aula Virtual");
         assertThat(text).contains("Universidad Nacional Mayor de San Marcos");
         assertThat(text).contains("22200275-32BGNYGF-1-2026-I-v001");
+    }
+
+    @Test
+    void debeGenerarPdfSemestralConEncabezadoInstitucional() throws Exception {
+        byte[] pdf = pdfGenerationService.generateSemesterCertificate(validSemesterSummary(), validMetadata());
+
+        String text = extractText(pdf).replaceAll("\\s+", " ");
+
+        assertThat(text).contains("UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS");
+        assertThat(text).contains("CONSTANCIA SEMESTRAL");
+        assertThat(text).contains("José Muñoz Peña");
+        assertThat(text).contains("32BGNYGF");
+        assertThat(text).contains("Ingeniería y Gestión de Proyectos");
     }
 
     @Test
@@ -95,6 +117,13 @@ class PdfBoxPdfGenerationServiceTest {
         assertThat(text).contains("Guías de práctica por curso");
         assertThat(text).contains("Materiales Didácticos Electrónicos");
         assertThat(text).contains("Sí");
+    }
+
+    @Test
+    void debeDibujarBordesDeTablasConOperadoresGraficos() throws Exception {
+        byte[] pdf = pdfGenerationService.generateCourseCertificate(validRequest(), validMetadata());
+
+        assertThat(countOperators(pdf, "re", "S")).isGreaterThanOrEqualTo(4);
     }
 
     @Test
@@ -154,6 +183,23 @@ class PdfBoxPdfGenerationServiceTest {
         }
     }
 
+    private int countOperators(byte[] pdf, String... operatorNames) throws IOException {
+        List<String> expected = List.of(operatorNames);
+        int count = 0;
+        try (PDDocument document = PDDocument.load(pdf)) {
+            for (PDPage page : document.getPages()) {
+                PDFStreamParser parser = new PDFStreamParser(page);
+                parser.parse();
+                for (Object token : parser.getTokens()) {
+                    if (token instanceof Operator operator && expected.contains(operator.getName())) {
+                        count++;
+                    }
+                }
+            }
+        }
+        return count;
+    }
+
     private static java.util.stream.Stream<InvalidInput> invalidInputs() {
         return java.util.stream.Stream.of(
                 new InvalidInput("solicitud", (request, metadata) -> {
@@ -198,6 +244,23 @@ class PdfBoxPdfGenerationServiceTest {
                 Instant.parse("2026-07-14T10:30:00Z"),
                 "request.json",
                 "certificate.pdf");
+    }
+
+    private SemesterCertificateSourceSummary validSemesterSummary() {
+        return new SemesterCertificateSourceSummary(
+                "22200275",
+                "José Muñoz Peña",
+                "jmunoz@unmsm.edu.pe",
+                "2026-I",
+                List.of(new SemesterCertificateSource(
+                        "22200275-32BGNYGF-1-2026-I-v001",
+                        "22200275-32BGNYGF-1-2026-I",
+                        "32BGNYGF",
+                        "Ingeniería y Gestión de Proyectos",
+                        "1",
+                        "SW",
+                        "2023",
+                        EstadoConstancia.GENERADO)));
     }
 
     private record InvalidInput(String name, InvalidInputMutation mutation, String expectedMessage,

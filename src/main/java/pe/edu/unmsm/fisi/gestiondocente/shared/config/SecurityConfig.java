@@ -123,9 +123,6 @@ public class SecurityConfig {
 
                     authorize
                             .requestMatchers("/health").permitAll()
-                            .requestMatchers("/api/v1/**", "/docentes/**", "/constancias/**", "/director/**",
-                                    "/demo/**", "/legacy/**", "/temp/**")
-                            .permitAll()
                             .requestMatchers(org.springframework.http.HttpMethod.POST, "/auth/login").permitAll();
 
                     authorize.anyRequest().authenticated();

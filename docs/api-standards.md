@@ -76,7 +76,12 @@ The final public contract does not expose versioned, Spanish, demo, temporary, o
 - `/temp/**`
 
 The current frontend MVP consumes only `/auth/login`, `/teachers/**`, `/certificates/**`, and `/health`.
+`SecurityConfig` must not keep compatibility matchers for removed public routes; missing removed paths should fall through as non-existing routes, not as supported aliases.
 
 ## Visible signature
 
 `POST /certificates/{id}/signature` applies a non-cryptographic institutional visible signature to the PDF. The signed document is served by `GET /certificates/{id}/document` when the certificate status is `FIRMADA`.
+
+## Institutional PDF format
+
+Generated certificate PDFs use an institutional UNMSM/FISI layout: formal text header, document title, sober body typography, bordered tables, institutional footer, and visible non-cryptographic signature block when signed. The format preserves the current academic content and business rules; only visual presentation is adjusted.
