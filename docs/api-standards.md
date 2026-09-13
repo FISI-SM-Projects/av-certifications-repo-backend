@@ -7,8 +7,16 @@ The public backend API uses `/api/v1` as the versioned prefix.
 - `POST /api/v1/auth/login`
 - `GET /api/v1/teachers/me`
 - `GET /api/v1/teachers/me/courses`
+- `GET /api/v1/certificates`
+- `POST /api/v1/certificates`
+- `GET /api/v1/certificates/{id}`
+- `GET /api/v1/certificates/{id}/document`
+- `GET /api/v1/certificates/{id}/versions`
+- `POST /api/v1/certificates/{id}/signature`
 
 New public JSON endpoints must use English resource names, plural collections, lower camel case properties, `Id` suffix for identifiers, and `At` suffix for timestamps. Query filters must be sent as query parameters. Paginated endpoints use `page` and `size`; teacher courses default to `page=0`, `size=10`, and reject `size > 50`.
+
+Certificate list endpoints accept filters such as `teacherCode`, `certificateType`, `status`, `semester`, and `course`. Certificate document delivery uses `GET /api/v1/certificates/{id}/document?disposition=inline|attachment`; new APIs should not introduce verb-style paths such as `/download`.
 
 ## Success envelope
 
@@ -61,4 +69,4 @@ These routes remain only for compatibility while the frontend and API contract a
 - `/api/v1/constancias/**`
 - `/api/v1/director/**`
 
-Do not add new public routes under these Spanish segments. Future certificate APIs should move to `/api/v1/certificates`, and logical signature should move to a route such as `/api/v1/certificates/{id}/signature`.
+Do not add new public routes under these Spanish segments. The certificate flow now has official `/api/v1/certificates/**` routes; `/api/v1/constancias/**` remains available only as a compatibility layer until all consumers are migrated and verified.

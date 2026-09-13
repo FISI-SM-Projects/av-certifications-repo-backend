@@ -18,7 +18,8 @@ class ApiEndpointArchitectureTest {
     );
     private static final List<String> INFRASTRUCTURE_PREFIXES = List.of("/api/v1/health");
     private static final List<String> FORBIDDEN_SPANISH_SEGMENTS = List.of(
-            "docentes", "constancias", "carga-academica", "firma", "semestral", "curso"
+            "docentes", "constancias", "carga-academica", "firma", "semestral", "curso",
+            "generaciones", "certificados", "historial", "download"
     );
     private static final Pattern MAPPING_VALUE = Pattern.compile("@(?:Request|Get|Post|Put|Patch|Delete)Mapping\\(\\s*\"([^\"]+)\"");
 

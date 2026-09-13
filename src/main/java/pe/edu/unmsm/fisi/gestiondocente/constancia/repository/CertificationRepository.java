@@ -9,6 +9,9 @@ public interface CertificationRepository extends JpaRepository<Certification, Lo
     java.util.Optional<Certification> findById(Long id);
 
     @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"academicWorkload.teacher.person", "academicWorkload.course", "academicWorkload.academicPeriod", "teacher.person", "academicPeriod"})
+    java.util.List<Certification> findAllByOrderByIdDesc();
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"academicWorkload.teacher.person", "academicWorkload.course", "academicWorkload.academicPeriod", "teacher.person", "academicPeriod"})
     java.util.List<Certification> findByTeacherCodeOrderByIdDesc(String code);
 
     @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"academicWorkload.teacher.person", "academicWorkload.course", "academicWorkload.academicPeriod", "teacher.person", "academicPeriod"})

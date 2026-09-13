@@ -18,18 +18,25 @@ import pe.edu.unmsm.fisi.gestiondocente.cargadocente.repository.AcademicWorkload
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.InstitutionalCertificateResponse;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.SemesterCertificateSource;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.SemesterCertificateSourceSummary;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.api.CertificateResponse;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.api.CreateCertificateRequest;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.*;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.*;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.exception.IncompleteSemesterSourceException;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.repository.CertificationRepository;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.service.pdf.PdfGenerationService;
 import pe.edu.unmsm.fisi.gestiondocente.auth.repository.InstitutionalAccountRepository;
 import pe.edu.unmsm.fisi.gestiondocente.auth.entity.AccountStatus;
+import pe.edu.unmsm.fisi.gestiondocente.shared.response.PaginatedResponse;
 
 @Service
 @Profile("!test")
 @Transactional(readOnly = true)
 public class InstitutionalCertificateService {
     private static final ZoneId LIMA = ZoneId.of("America/Lima");
+    private static final int DEFAULT_PAGE = 0;
+    private static final int DEFAULT_SIZE = 10;
+    private static final int MAX_SIZE = 50;
     private final CertificationRepository certificates;
     private final AcademicWorkloadRepository workloads;
     private final CurrentAccountService identity;
@@ -41,6 +48,88 @@ public class InstitutionalCertificateService {
         this.certificates = certificates; this.workloads = workloads; this.identity = identity;
         this.accounts = accounts; this.storage = storage; this.pdf = pdf;
     }
+    public CertificatePage listApi(String teacherCode, String certificateType, String status, String semester,
+            String course, Integer page, Integer size, Authentication auth) {
+        int pageNumber = normalizePage(page);
+        int pageSize = normalizeSize(size);
+        var user = identity.me(auth);
+        List<Certification> rows;
+        if (teacherCode != null && !teacherCode.isBlank()) {
+            identity.requireTeacherAccess(auth, teacherCode.trim());
+            rows = certificates.findByTeacherCodeOrderByIdDesc(teacherCode.trim());
+        } else if (user.teacher() != null && user.roles().contains("DOCENTE") && !user.roles().contains("ADMIN")) {
+            rows = certificates.findByTeacherCodeOrderByIdDesc(user.teacher().teacherCode());
+        } else {
+            identity.requireManagement(auth);
+            rows = certificates.findAllByOrderByIdDesc().stream()
+                    .filter(c -> canReadTeacher(auth, teacherCode(c)))
+                    .toList();
+        }
+        var filtered = latestVisibleCertificates(rows).stream()
+                .filter(c -> matches(c, certificateType, status, semester, course))
+                .toList();
+        int totalElements = filtered.size();
+        int from = Math.min(pageNumber * pageSize, totalElements);
+        int to = Math.min(from + pageSize, totalElements);
+        var data = filtered.subList(from, to).stream().map(this::apiResponse).toList();
+        int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / pageSize);
+        return new CertificatePage(data, new PaginatedResponse.Pagination(pageNumber, pageSize, totalElements, totalPages, data.size()));
+    }
+
+    @Transactional
+    public CertificateResponse createApi(CreateCertificateRequest input, Authentication auth) {
+        if (input == null || input.certificateType() == null || input.certificateType().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Indique el tipo de constancia");
+        }
+        var type = certificateType(input.certificateType());
+        if (type == CertificationType.COURSE) {
+            if (input.academicWorkloadId() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Indique la carga academica");
+            }
+            var generated = generate(new GenerateRequest(input.academicWorkloadId(), null, null, null), auth);
+            return detailApi(generated.generationId(), auth);
+        }
+        String teacherCode = Objects.toString(input.teacherCode(), "").trim();
+        String semester = Objects.toString(input.semester(), "").trim();
+        if (teacherCode.isBlank() || semester.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Indique docente y periodo academico");
+        }
+        identity.requireCertificateGenerationAccess(auth, teacherCode);
+        if (!Boolean.TRUE.equals(input.confirmIncomplete())) {
+            requireCompleteSemesterSource(teacherCode, semester);
+        }
+        var generated = generateSemester(new SemesterCertificateRequest(teacherCode, semester, List.of()), auth);
+        return detailApi(generated.generationId(), auth);
+    }
+
+    public CertificateResponse detailApi(String id, Authentication auth) {
+        return apiResponse(find(id, auth));
+    }
+
+    public CertificatePage versionsApi(String id, Integer page, Integer size, Authentication auth) {
+        var user = identity.me(auth);
+        if (!user.roles().contains("ADMIN")) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo ADMIN puede consultar historial completo");
+        }
+        int pageNumber = normalizePage(page);
+        int pageSize = normalizeSize(size);
+        var cert = certificates.findById(parseId(id))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Constancia no encontrada"));
+        var history = historyRows(cert);
+        int totalElements = history.size();
+        int from = Math.min(pageNumber * pageSize, totalElements);
+        int to = Math.min(from + pageSize, totalElements);
+        var data = history.subList(from, to).stream().map(this::apiResponse).toList();
+        int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / pageSize);
+        return new CertificatePage(data, new PaginatedResponse.Pagination(pageNumber, pageSize, totalElements, totalPages, data.size()));
+    }
+
+    @Transactional
+    public CertificateResponse signApi(String id, Authentication auth) {
+        var signed = sign(id, auth);
+        return detailApi(signed.generationId(), auth);
+    }
+
     public List<InstitutionalCertificateResponse> list(String code, Authentication auth) {
         identity.requireTeacherAccess(auth, code);
         return latestVisibleCertificates(certificates.findByTeacherCodeOrderByIdDesc(code)).stream().map(this::response).toList();
@@ -250,6 +339,46 @@ public class InstitutionalCertificateService {
                 url + "/pdf", url + "/download", w.getCourse().getName(), teacher.getPerson().getFullName(),
                 storage.available(c.getDocumentPath()));
     }
+    private CertificateResponse apiResponse(Certification c) {
+        var w = c.getAcademicWorkload();
+        var teacher = c.getTeacher() != null ? c.getTeacher() : w.getTeacher();
+        var period = c.getAcademicPeriod() != null ? c.getAcademicPeriod() : w.getAcademicPeriod();
+        var course = w == null || w.getCourse() == null ? null
+                : new CertificateResponse.CourseSummary(w.getCourse().getId(), w.getCourse().getCode(), w.getCourse().getName());
+        Integer section = w == null ? null : w.getSection();
+        Integer cycle = w == null ? null : w.getCycle();
+        Integer plan = w == null ? null : w.getPlan();
+        String school = w == null || w.getSchool() == null ? null : w.getSchool().name();
+        return new CertificateResponse(
+                c.getId(),
+                certificateKey(c),
+                c.getCertificateType() == null ? CertificationType.COURSE.name() : c.getCertificateType().name(),
+                status(c),
+                c.getVersionNumber() == null ? computedVersion(c) : c.getVersionNumber(),
+                teacher.getId(),
+                teacher.getCode(),
+                teacher.getPerson().getFullName(),
+                period.getId(),
+                period.getSemesterCode(),
+                w == null ? null : w.getId(),
+                course,
+                section,
+                cycle,
+                school,
+                plan,
+                generatedInstant(c),
+                signedInstant(c),
+                storage.available(c.getDocumentPath()),
+                "/api/v1/certificates/" + c.getId() + "/document");
+    }
+
+    private String certificateKey(Certification c) {
+        if (c.getCertificateType() == CertificationType.SEMESTER) {
+            return semesterKey(c.getTeacher().getCode(), c.getAcademicPeriod().getSemesterCode());
+        }
+        return "workload-" + c.getAcademicWorkload().getId();
+    }
+
     private SemesterCertificateSource source(Certification c) {
         var w = c.getAcademicWorkload();
         return new SemesterCertificateSource(c.getId().toString(), "workload-" + w.getId(), w.getCourse().getCode(),
@@ -361,11 +490,19 @@ public class InstitutionalCertificateService {
         for (int i = 0; i < history.size(); i++) if (history.get(i).getId().equals(certification.getId())) return i + 1;
         return 1;
     }
+    private int computedVersion(Certification certification) {
+        var history = historyRows(certification);
+        for (int i = 0; i < history.size(); i++) if (history.get(i).getId().equals(certification.getId())) return i + 1;
+        return 1;
+    }
     private boolean isGenerated(Certification c) { return c.getStatus() != null && c.getStatus().isGenerated(); }
     private boolean isSigned(Certification c) { return c.getStatus() != null && c.getStatus().isSigned(); }
     private Instant generatedInstant(Certification c) {
         var generatedAt = c.getGeneratedAt() != null ? c.getGeneratedAt() : c.getCreatedAt();
         return generatedAt == null ? null : generatedAt.atZone(LIMA).toInstant();
+    }
+    private Instant signedInstant(Certification c) {
+        return c.getSignedAt() == null ? null : c.getSignedAt().atZone(LIMA).toInstant();
     }
     private String jsonObject(String... keyValues) {
         var builder = new StringBuilder("{");
@@ -381,4 +518,96 @@ public class InstitutionalCertificateService {
     }
     private String semesterKey(String teacherCode, String semester) { return "semester-" + teacherCode + "-" + semester; }
     private String status(Certification c) { return c.getStatus() == null ? "GENERADA" : c.getStatus().official().name(); }
+    private boolean canReadTeacher(Authentication auth, String teacherCode) {
+        try {
+            identity.requireTeacherAccess(auth, teacherCode);
+            return true;
+        } catch (ResponseStatusException ex) {
+            return false;
+        }
+    }
+
+    private boolean matches(Certification c, String certificateType, String targetStatus, String semester, String course) {
+        if (certificateType != null && !certificateType.isBlank()
+                && certificateType(certificateType) != c.getCertificateType()) {
+            return false;
+        }
+        if (targetStatus != null && !targetStatus.isBlank()
+                && !status(c).equalsIgnoreCase(targetStatus.trim())) {
+            return false;
+        }
+        var period = c.getAcademicPeriod() != null ? c.getAcademicPeriod()
+                : c.getAcademicWorkload() == null ? null : c.getAcademicWorkload().getAcademicPeriod();
+        if (semester != null && !semester.isBlank()
+                && (period == null || !period.getSemesterCode().equalsIgnoreCase(semester.trim()))) {
+            return false;
+        }
+        if (course != null && !course.isBlank()) {
+            var workload = c.getAcademicWorkload();
+            if (workload == null || workload.getCourse() == null) {
+                return false;
+            }
+            String needle = course.trim().toLowerCase(Locale.ROOT);
+            return workload.getCourse().getCode().toLowerCase(Locale.ROOT).contains(needle)
+                    || workload.getCourse().getName().toLowerCase(Locale.ROOT).contains(needle);
+        }
+        return true;
+    }
+
+    private CertificationType certificateType(String value) {
+        try {
+            return CertificationType.valueOf(value.trim().toUpperCase(Locale.ROOT));
+        } catch (RuntimeException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "certificateType debe ser COURSE o SEMESTER");
+        }
+    }
+
+    private void requireCompleteSemesterSource(String teacherCode, String semester) {
+        var expected = workloads.findByTeacherCodeAndAcademicPeriodSemesterCodeOrderById(teacherCode, semester);
+        if (expected.isEmpty()) {
+            return;
+        }
+        var sourceRows = latestCourseCertificatesByWorkload(certificates
+                .findByTeacherCodeAndAcademicPeriodSemesterCodeAndCertificateTypeOrderById(
+                        teacherCode, semester, CertificationType.COURSE)
+                .stream()
+                .filter(c -> isGenerated(c) || isSigned(c))
+                .toList());
+        var generatedWorkloads = sourceRows.stream()
+                .map(Certification::getAcademicWorkload)
+                .filter(Objects::nonNull)
+                .map(AcademicWorkload::getId)
+                .collect(java.util.stream.Collectors.toSet());
+        var missing = expected.stream()
+                .filter(workload -> !generatedWorkloads.contains(workload.getId()))
+                .map(workload -> workload.getCourse().getCode() + "-" + workload.getSection())
+                .toList();
+        if (!missing.isEmpty()) {
+            throw new IncompleteSemesterSourceException(expected.size(), sourceRows.size(), missing);
+        }
+    }
+
+    private List<Certification> historyRows(Certification c) {
+        if (c.getCertificateType() == CertificationType.SEMESTER) {
+            return certificates.findByTeacherIdAndAcademicPeriodIdAndCertificateTypeOrderById(
+                    c.getTeacher().getId(), c.getAcademicPeriod().getId(), CertificationType.SEMESTER);
+        }
+        return certificates.findByAcademicWorkloadIdOrderById(c.getAcademicWorkload().getId());
+    }
+
+    private int normalizePage(Integer page) {
+        if (page == null) return DEFAULT_PAGE;
+        if (page < 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "page must be greater than or equal to 0");
+        return page;
+    }
+
+    private int normalizeSize(Integer size) {
+        if (size == null) return DEFAULT_SIZE;
+        if (size < 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "size must be greater than or equal to 1");
+        if (size > MAX_SIZE) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "size must be less than or equal to " + MAX_SIZE);
+        return size;
+    }
+
+    public record CertificatePage(List<CertificateResponse> data, PaginatedResponse.Pagination pagination) {
+    }
 }
