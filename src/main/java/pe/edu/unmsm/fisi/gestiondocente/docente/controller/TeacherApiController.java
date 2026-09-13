@@ -30,6 +30,16 @@ public class TeacherApiController {
         return DefaultResponse.success(SUCCESS_MESSAGE, service.me(authentication));
     }
 
+    @GetMapping
+    public PaginatedResponse<List<TeacherMeResponse>> teachers(
+            Authentication authentication,
+            @RequestParam(required = false) String department,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+        TeacherApiService.TeacherPage result = service.teachers(authentication, department, page, size);
+        return PaginatedResponse.success(SUCCESS_MESSAGE, result.data(), result.pagination());
+    }
+
     @GetMapping("/me/courses")
     public PaginatedResponse<List<TeacherCourseResponse>> courses(
             Authentication authentication,

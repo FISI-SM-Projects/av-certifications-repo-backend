@@ -18,6 +18,7 @@ import pe.edu.unmsm.fisi.gestiondocente.cargadocente.entity.AcademicWorkload;
 import pe.edu.unmsm.fisi.gestiondocente.cargadocente.repository.AcademicWorkloadRepository;
 import pe.edu.unmsm.fisi.gestiondocente.docente.dto.api.TeacherCourseResponse;
 import pe.edu.unmsm.fisi.gestiondocente.docente.dto.api.TeacherMeResponse;
+import pe.edu.unmsm.fisi.gestiondocente.docente.entity.Department;
 import pe.edu.unmsm.fisi.gestiondocente.docente.entity.Teacher;
 import pe.edu.unmsm.fisi.gestiondocente.docente.repository.TeacherRepository;
 import pe.edu.unmsm.fisi.gestiondocente.shared.response.PaginatedResponse;
@@ -45,6 +46,45 @@ public class TeacherApiService {
 
     public TeacherMeResponse me(Authentication authentication) {
         return teacherMe(currentTeacher(authentication));
+    }
+
+    public TeacherPage teachers(Authentication authentication, String department, Integer page, Integer size) {
+        var user = identity.me(authentication);
+        if (!user.roles().contains("ADMIN") && !user.roles().contains("DIRECTOR")) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tiene permisos para consultar docentes");
+        }
+
+        int pageNumber = normalizePage(page);
+        int pageSize = normalizeSize(size);
+        String requestedDepartment = department == null || department.isBlank() ? null : department.trim().toUpperCase(Locale.ROOT);
+
+        Department departmentFilter = null;
+        if (user.roles().contains("DIRECTOR") && !user.roles().contains("ADMIN")) {
+            if (user.teacher() == null || user.teacher().department() == null) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El director no tiene departamento asociado");
+            }
+            if (requestedDepartment != null && !requestedDepartment.equals(user.teacher().department())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El director solo puede consultar docentes de su departamento");
+            }
+            departmentFilter = parseDepartment(user.teacher().department());
+        } else if (requestedDepartment != null) {
+            departmentFilter = parseDepartment(requestedDepartment);
+        }
+
+        List<TeacherMeResponse> filtered = (departmentFilter == null
+                ? teachers.findAllByOrderByCodeAsc()
+                : teachers.findByDepartmentOrderByCodeAsc(departmentFilter)).stream()
+                .map(this::teacherMe)
+                .toList();
+
+        long totalElements = filtered.size();
+        int fromIndex = Math.min(pageNumber * pageSize, filtered.size());
+        int toIndex = Math.min(fromIndex + pageSize, filtered.size());
+        List<TeacherMeResponse> data = filtered.subList(fromIndex, toIndex);
+        int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / pageSize);
+
+        var pagination = new PaginatedResponse.Pagination(pageNumber, pageSize, totalElements, totalPages, data.size());
+        return new TeacherPage(data, pagination);
     }
 
     public CoursePage courses(Authentication authentication, String semester, Integer cycle, Integer plan,
@@ -130,6 +170,14 @@ public class TeacherApiService {
                 || workload.getCourse().getName().toLowerCase(Locale.ROOT).contains(expected);
     }
 
+    private Department parseDepartment(String department) {
+        try {
+            return Department.valueOf(department);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "department must be one of CC, SW, EG or NA");
+        }
+    }
+
     private int normalizePage(Integer page) {
         if (page == null) {
             return DEFAULT_PAGE;
@@ -158,5 +206,8 @@ public class TeacherApiService {
     }
 
     public record CoursePage(List<TeacherCourseResponse> data, PaginatedResponse.Pagination pagination) {
+    }
+
+    public record TeacherPage(List<TeacherMeResponse> data, PaginatedResponse.Pagination pagination) {
     }
 }

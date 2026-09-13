@@ -68,6 +68,10 @@ class TeacherApiControllerSecurityTest {
                                 OffsetDateTime.parse("2026-03-15T00:00:00Z"),
                                 OffsetDateTime.parse("2026-07-20T00:00:00Z")))),
                 new PaginatedResponse.Pagination(0, 10, 1, 1, 1)));
+        when(service.teachers(any(), any(), any(), any())).thenReturn(new TeacherApiService.TeacherPage(
+                List.of(new TeacherMeResponse(2L, 10L, 46L, "22200101",
+                        "22233344", "lalarconl@unmsm.edu.pe", "LUIS ALBERTO", "ALARCON", "LOAYZA", "CC", "ACTIVO")),
+                new PaginatedResponse.Pagination(0, 10, 1, 1, 1)));
     }
 
     @Test
@@ -103,7 +107,33 @@ class TeacherApiControllerSecurityTest {
                 .andExpect(jsonPath("$.pagination.totalElements").value(1));
     }
 
+    @Test
+    void teachersCollectionRequiresToken() throws Exception {
+        mvc.perform(get("/api/v1/teachers"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.statusCode").value(401));
+    }
+
+    @Test
+    void teachersCollectionReturnsEnvelopeAndPagination() throws Exception {
+        mvc.perform(get("/api/v1/teachers")
+                        .param("department", "CC")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .header("Authorization", "Bearer " + token("DIRECTOR")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data[0].code").value("22200101"))
+                .andExpect(jsonPath("$.pagination.pageNumber").value(0))
+                .andExpect(jsonPath("$.pagination.totalElements").value(1));
+    }
+
     private String token() {
-        return jwt.generateToken(Map.of("roles", List.of("ROLE_DOCENTE"), "accountId", 1), "lalarconl");
+        return token("DOCENTE");
+    }
+
+    private String token(String role) {
+        return jwt.generateToken(Map.of("roles", List.of("ROLE_" + role), "accountId", 1), "lalarconl");
     }
 }

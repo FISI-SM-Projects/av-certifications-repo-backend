@@ -7,6 +7,7 @@ The public backend API uses `/api/v1` as the versioned prefix.
 - `POST /api/v1/auth/login`
 - `GET /api/v1/teachers/me`
 - `GET /api/v1/teachers/me/courses`
+- `GET /api/v1/teachers`
 - `GET /api/v1/certificates`
 - `POST /api/v1/certificates`
 - `GET /api/v1/certificates/{id}`
@@ -17,6 +18,8 @@ The public backend API uses `/api/v1` as the versioned prefix.
 New public JSON endpoints must use English resource names, plural collections, lower camel case properties, `Id` suffix for identifiers, and `At` suffix for timestamps. Query filters must be sent as query parameters. Paginated endpoints use `page` and `size`; teacher courses default to `page=0`, `size=10`, and reject `size > 50`.
 
 Certificate list endpoints accept filters such as `teacherCode`, `certificateType`, `status`, `semester`, and `course`. Certificate document delivery uses `GET /api/v1/certificates/{id}/document?disposition=inline|attachment`; new APIs should not introduce verb-style paths such as `/download`.
+
+`GET /api/v1/teachers` is the official collection endpoint for director/admin views. `DIRECTOR` users are restricted to their own academic department, while `ADMIN` can list all teachers or filter by `department`.
 
 ## Success envelope
 
@@ -69,4 +72,4 @@ These routes remain only for compatibility while the frontend and API contract a
 - `/api/v1/constancias/**`
 - `/api/v1/director/**`
 
-Do not add new public routes under these Spanish segments. The certificate flow now has official `/api/v1/certificates/**` routes; `/api/v1/constancias/**` remains available only as a compatibility layer until all consumers are migrated and verified.
+Do not add new public routes under these Spanish segments. The current frontend MVP uses the official `/api/v1/teachers/**` and `/api/v1/certificates/**` routes; `/api/v1/constancias/**` and `/api/v1/director/**` remain available only as temporary compatibility layers for external or historical consumers.
