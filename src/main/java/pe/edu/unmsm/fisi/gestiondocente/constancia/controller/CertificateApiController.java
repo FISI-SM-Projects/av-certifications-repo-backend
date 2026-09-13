@@ -18,7 +18,7 @@ import pe.edu.unmsm.fisi.gestiondocente.shared.response.PaginatedResponse;
 
 @RestController
 @Profile("!test")
-@RequestMapping("/api/v1/certificates")
+@RequestMapping("/certificates")
 public class CertificateApiController {
     private static final String SUCCESS_MESSAGE = "Operación completada exitosamente";
     private final InstitutionalCertificateService service;

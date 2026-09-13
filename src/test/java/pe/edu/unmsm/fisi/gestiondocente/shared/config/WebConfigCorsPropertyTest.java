@@ -19,7 +19,7 @@ class WebConfigCorsPropertyTest {
 
     @Test
     void corsDebeUsarOrigenesConfiguradosPorPropiedad() throws Exception {
-        mockMvc.perform(options("/api/v1/constancias/curso")
+        mockMvc.perform(options("/certificates")
                         .header("Origin", "http://localhost:3101")
                         .header("Access-Control-Request-Method", "POST"))
                 .andExpect(status().isOk())
@@ -29,7 +29,7 @@ class WebConfigCorsPropertyTest {
 
     @Test
     void corsConfiguradoPorPropiedadDebeRechazarOrigenNoIncluido() throws Exception {
-        mockMvc.perform(options("/api/v1/constancias/curso")
+        mockMvc.perform(options("/certificates")
                         .header("Origin", "http://localhost:3000")
                         .header("Access-Control-Request-Method", "POST"))
                 .andExpect(status().isForbidden());

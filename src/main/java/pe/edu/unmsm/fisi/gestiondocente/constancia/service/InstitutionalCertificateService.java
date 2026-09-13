@@ -67,6 +67,7 @@ public class InstitutionalCertificateService {
         }
         var filtered = latestVisibleCertificates(rows).stream()
                 .filter(c -> matches(c, certificateType, status, semester, course))
+                .sorted(Comparator.comparingInt(this::statusPriority).thenComparing(Certification::getId, Comparator.reverseOrder()))
                 .toList();
         int totalElements = filtered.size();
         int from = Math.min(pageNumber * pageSize, totalElements);
@@ -135,7 +136,7 @@ public class InstitutionalCertificateService {
         return latestVisibleCertificates(certificates.findByTeacherCodeOrderByIdDesc(code)).stream().map(this::response).toList();
     }
     public InstitutionalCertificateResponse detail(String id, Authentication auth) { return response(find(id, auth)); }
-    public byte[] readPdf(String id, Authentication auth) { return storage.read(find(id, auth).getDocumentPath()); }
+    public byte[] readPdf(String id, Authentication auth) { return storage.read(documentPathToServe(find(id, auth))); }
     public List<InstitutionalCertificateResponse> history(String key, Authentication auth) {
         if (key.startsWith("workload-")) {
             var workload = workloads.findById(parseId(key.substring(9)))
@@ -302,9 +303,20 @@ public class InstitutionalCertificateService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Solo se firman constancias generadas");
         }
         var now = LocalDateTime.now(LIMA);
+        var signer = identity.account(auth);
+        var signerContext = identity.me(auth);
         cert.setStatus(CertificationStatus.FIRMADA);
-        cert.setSignedByAccount(identity.account(auth));
+        cert.setSignedByAccount(signer);
         cert.setSignedAt(now);
+        byte[] original = storage.read(cert.getDocumentPath());
+        String signedPath = storage.newSignedDocumentPath();
+        byte[] signedPdf = pdf.addVisibleInstitutionalSignature(original,
+                signer.getPerson().getFullName(),
+                signerContext.teacher() == null ? signer.getUsername() : signerContext.teacher().teacherCode(),
+                signerContext.teacher() == null ? "" : signerContext.teacher().department(),
+                now.atZone(LIMA).toInstant());
+        storage.write(signedPath, signedPdf);
+        cert.setSignedDocumentPath(signedPath);
         cert.setUpdatedAt(now);
         certificates.saveAndFlush(cert);
         return response(cert);
@@ -325,19 +337,19 @@ public class InstitutionalCertificateService {
         var w = c.getAcademicWorkload();
         var teacher = c.getTeacher() != null ? c.getTeacher() : w.getTeacher();
         var period = c.getAcademicPeriod() != null ? c.getAcademicPeriod() : w.getAcademicPeriod();
-        String url = "/api/v1/constancias/generaciones/" + c.getId();
+        String url = "/certificates/" + c.getId() + "/document";
         if (c.getCertificateType() == CertificationType.SEMESTER) {
             return new InstitutionalCertificateResponse(c.getId().toString(), semesterKey(teacher.getCode(), period.getSemesterCode()),
                     version, "SEMESTRAL", "SEMESTER", status(c), teacher.getCode(), null, null, period.getSemesterCode(),
                     generatedInstant(c),
-                    url + "/pdf", url + "/download", null, teacher.getPerson().getFullName(),
-                    storage.available(c.getDocumentPath()));
+                    url, url + "?disposition=attachment", null, teacher.getPerson().getFullName(),
+                    storage.available(documentPathToServe(c)));
         }
         return new InstitutionalCertificateResponse(c.getId().toString(), "workload-" + w.getId(), version, "CURSO", "COURSE",
                 status(c), teacher.getCode(), w.getCourse().getCode(), w.getSection().toString(), period.getSemesterCode(),
                 generatedInstant(c),
-                url + "/pdf", url + "/download", w.getCourse().getName(), teacher.getPerson().getFullName(),
-                storage.available(c.getDocumentPath()));
+                url, url + "?disposition=attachment", w.getCourse().getName(), teacher.getPerson().getFullName(),
+                storage.available(documentPathToServe(c)));
     }
     private CertificateResponse apiResponse(Certification c) {
         var w = c.getAcademicWorkload();
@@ -368,8 +380,8 @@ public class InstitutionalCertificateService {
                 plan,
                 generatedInstant(c),
                 signedInstant(c),
-                storage.available(c.getDocumentPath()),
-                "/api/v1/certificates/" + c.getId() + "/document");
+                storage.available(documentPathToServe(c)),
+                "/certificates/" + c.getId() + "/document");
     }
 
     private String certificateKey(Certification c) {
@@ -497,6 +509,13 @@ public class InstitutionalCertificateService {
     }
     private boolean isGenerated(Certification c) { return c.getStatus() != null && c.getStatus().isGenerated(); }
     private boolean isSigned(Certification c) { return c.getStatus() != null && c.getStatus().isSigned(); }
+    private int statusPriority(Certification c) { return isGenerated(c) ? 0 : 1; }
+    private String documentPathToServe(Certification c) {
+        if (isSigned(c) && c.getSignedDocumentPath() != null && !c.getSignedDocumentPath().isBlank()) {
+            return c.getSignedDocumentPath();
+        }
+        return c.getDocumentPath();
+    }
     private Instant generatedInstant(Certification c) {
         var generatedAt = c.getGeneratedAt() != null ? c.getGeneratedAt() : c.getCreatedAt();
         return generatedAt == null ? null : generatedAt.atZone(LIMA).toInstant();

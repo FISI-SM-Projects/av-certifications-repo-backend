@@ -10,4 +10,7 @@ public interface PdfGenerationService {
 
     byte[] generateSemesterCertificate(SemesterCertificateSourceSummary sourceSummary,
             CertificateGenerationMetadata metadata);
+
+    byte[] addVisibleInstitutionalSignature(byte[] originalPdf, String directorName, String directorCode,
+            String department, java.time.Instant signedAt);
 }

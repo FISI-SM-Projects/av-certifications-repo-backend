@@ -16,6 +16,7 @@ public class InstitutionalPdfStorage {
         this.root = Path.of(root).toAbsolutePath().normalize();
     }
     public String newDocumentPath() { return "certificates/institutional/" + java.util.UUID.randomUUID() + ".pdf"; }
+    public String newSignedDocumentPath() { return "certificates/institutional/signed/" + java.util.UUID.randomUUID() + ".pdf"; }
     public void write(String documentPath, byte[] pdf) {
         if (pdf == null || pdf.length < 5 || !new String(pdf, 0, 5, java.nio.charset.StandardCharsets.US_ASCII).equals("%PDF-")) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "El generador no produjo un PDF valido");

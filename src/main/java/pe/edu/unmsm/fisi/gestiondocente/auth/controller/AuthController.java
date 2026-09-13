@@ -14,7 +14,7 @@ import pe.edu.unmsm.fisi.gestiondocente.shared.response.DefaultResponse;
 
 @RestController
 @Profile("!test")
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/auth")
 public class AuthController {
 
     private final LoginService loginService;

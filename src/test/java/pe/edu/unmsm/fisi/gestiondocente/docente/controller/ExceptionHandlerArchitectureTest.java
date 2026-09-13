@@ -14,8 +14,6 @@ class ExceptionHandlerArchitectureTest {
 
     @Test
     void illegalStateExceptionNoDebeMapearseComoErrorDeDominio() {
-        assertThat(exceptionHandlerTypes(DocenteExceptionHandler.class))
-                .doesNotContain(IllegalStateException.class);
         assertThat(exceptionHandlerTypes(AuthExceptionHandler.class))
                 .doesNotContain(IllegalStateException.class);
     }

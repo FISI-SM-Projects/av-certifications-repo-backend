@@ -288,8 +288,8 @@ public class SemesterCertificateService {
         List<String> sourceGenerationIds = sources.stream()
                 .map(SemesterCertificateSource::getGenerationId)
                 .toList();
-        String viewUrl = "/api/v1/constancias/generaciones/" + metadata.getGenerationId() + "/pdf";
-        String downloadUrl = "/api/v1/constancias/generaciones/" + metadata.getGenerationId() + "/download";
+        String viewUrl = "/certificates/" + metadata.getGenerationId() + "/document";
+        String downloadUrl = "/certificates/" + metadata.getGenerationId() + "/document?disposition=attachment";
 
         return new SemesterCertificateResponse(
                 metadata.getGenerationId(),

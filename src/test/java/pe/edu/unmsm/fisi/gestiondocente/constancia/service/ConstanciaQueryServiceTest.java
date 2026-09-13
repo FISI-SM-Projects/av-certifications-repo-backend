@@ -42,9 +42,9 @@ class ConstanciaQueryServiceTest {
         assertThat(result).extracting(CertificateGenerationResponse::getGenerationId)
                 .containsExactly("22200275-32BGNYGF-1-26.1-v001", "22200275-32BGNYGF-1-26.1-v002");
         assertThat(result.get(0).getViewUrl()).isEqualTo(
-                "/api/v1/constancias/generaciones/22200275-32BGNYGF-1-26.1-v001/pdf");
+                "/certificates/22200275-32BGNYGF-1-26.1-v001/document");
         assertThat(result.get(0).getDownloadUrl()).isEqualTo(
-                "/api/v1/constancias/generaciones/22200275-32BGNYGF-1-26.1-v001/download");
+                "/certificates/22200275-32BGNYGF-1-26.1-v001/document?disposition=attachment");
     }
 
     @Test

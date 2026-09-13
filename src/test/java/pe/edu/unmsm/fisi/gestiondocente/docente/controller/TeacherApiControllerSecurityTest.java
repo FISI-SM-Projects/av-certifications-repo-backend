@@ -76,7 +76,7 @@ class TeacherApiControllerSecurityTest {
 
     @Test
     void teacherMeRequiresToken() throws Exception {
-        mvc.perform(get("/api/v1/teachers/me"))
+        mvc.perform(get("/teachers/me"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.statusCode").value(401));
@@ -84,7 +84,7 @@ class TeacherApiControllerSecurityTest {
 
     @Test
     void validJwtCanReadTeacherMeWithEnvelope() throws Exception {
-        mvc.perform(get("/api/v1/teachers/me").header("Authorization", "Bearer " + token()))
+        mvc.perform(get("/teachers/me").header("Authorization", "Bearer " + token()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Operación completada exitosamente"))
@@ -94,7 +94,7 @@ class TeacherApiControllerSecurityTest {
 
     @Test
     void coursesReturnEnvelopeAndPagination() throws Exception {
-        mvc.perform(get("/api/v1/teachers/me/courses")
+        mvc.perform(get("/teachers/me/courses")
                         .param("semester", "26.1")
                         .param("page", "0")
                         .param("size", "10")
@@ -109,7 +109,7 @@ class TeacherApiControllerSecurityTest {
 
     @Test
     void teachersCollectionRequiresToken() throws Exception {
-        mvc.perform(get("/api/v1/teachers"))
+        mvc.perform(get("/teachers"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.statusCode").value(401));
@@ -117,7 +117,7 @@ class TeacherApiControllerSecurityTest {
 
     @Test
     void teachersCollectionReturnsEnvelopeAndPagination() throws Exception {
-        mvc.perform(get("/api/v1/teachers")
+        mvc.perform(get("/teachers")
                         .param("department", "CC")
                         .param("page", "0")
                         .param("size", "10")

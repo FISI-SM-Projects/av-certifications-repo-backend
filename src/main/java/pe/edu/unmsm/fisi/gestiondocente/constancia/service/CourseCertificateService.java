@@ -169,8 +169,8 @@ public class CourseCertificateService {
 
     private CourseCertificateResponse buildResponse(CourseCertificateRequest request,
             CertificateGenerationMetadata metadata) {
-        String viewUrl = "/api/v1/constancias/generaciones/" + metadata.getGenerationId() + "/pdf";
-        String downloadUrl = "/api/v1/constancias/generaciones/" + metadata.getGenerationId() + "/download";
+        String viewUrl = "/certificates/" + metadata.getGenerationId() + "/document";
+        String downloadUrl = "/certificates/" + metadata.getGenerationId() + "/document?disposition=attachment";
 
         return new CourseCertificateResponse(
                 metadata.getGenerationId(),

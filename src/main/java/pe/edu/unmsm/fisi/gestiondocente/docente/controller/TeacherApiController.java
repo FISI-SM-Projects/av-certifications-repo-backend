@@ -15,7 +15,7 @@ import pe.edu.unmsm.fisi.gestiondocente.shared.response.PaginatedResponse;
 
 @RestController
 @Profile("!test")
-@RequestMapping("/api/v1/teachers")
+@RequestMapping("/teachers")
 public class TeacherApiController {
     private static final String SUCCESS_MESSAGE = "Operación completada exitosamente";
 

@@ -81,7 +81,7 @@ class CertificateApiControllerSecurityTest {
 
     @Test
     void certificatesRequireToken() throws Exception {
-        mvc.perform(get("/api/v1/certificates"))
+        mvc.perform(get("/certificates"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.statusCode").value(401));
@@ -89,7 +89,7 @@ class CertificateApiControllerSecurityTest {
 
     @Test
     void listReturnsEnvelopeAndPagination() throws Exception {
-        mvc.perform(get("/api/v1/certificates")
+        mvc.perform(get("/certificates")
                         .param("certificateType", "COURSE")
                         .param("page", "0")
                         .param("size", "10")
@@ -102,7 +102,7 @@ class CertificateApiControllerSecurityTest {
 
     @Test
     void createCourseReturnsEnvelope() throws Exception {
-        mvc.perform(post("/api/v1/certificates")
+        mvc.perform(post("/certificates")
                         .header("Authorization", "Bearer " + token())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"certificateType\":\"COURSE\",\"academicWorkloadId\":1}"))
@@ -117,7 +117,7 @@ class CertificateApiControllerSecurityTest {
                 HttpStatus.CONFLICT,
                 "Aun no se han generado constancias para todos los cursos del periodo"));
 
-        mvc.perform(post("/api/v1/certificates")
+        mvc.perform(post("/certificates")
                         .header("Authorization", "Bearer " + token())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"certificateType\":\"SEMESTER\",\"teacherCode\":\"22200101\",\"semester\":\"26.1\"}"))
@@ -128,24 +128,24 @@ class CertificateApiControllerSecurityTest {
 
     @Test
     void detailAndDocumentUseOfficialPaths() throws Exception {
-        mvc.perform(get("/api/v1/certificates/1").header("Authorization", "Bearer " + token()))
+        mvc.perform(get("/certificates/1").header("Authorization", "Bearer " + token()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.documentUrl").value("/api/v1/certificates/1/document"));
+                .andExpect(jsonPath("$.data.documentUrl").value("/certificates/1/document"));
 
-        mvc.perform(get("/api/v1/certificates/1/document")
+        mvc.perform(get("/certificates/1/document")
                         .param("disposition", "inline")
-                        .header("Authorization", "Bearer " + token()))
+                .header("Authorization", "Bearer " + token()))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Content-Type", "application/pdf"));
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_PDF_VALUE));
     }
 
     @Test
     void versionsAndSignatureReturnOfficialEnvelope() throws Exception {
-        mvc.perform(get("/api/v1/certificates/1/versions").header("Authorization", "Bearer " + token("ADMIN")))
+        mvc.perform(get("/certificates/1/versions").header("Authorization", "Bearer " + token("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.pagination.totalElements").value(1));
 
-        mvc.perform(post("/api/v1/certificates/1/signature").header("Authorization", "Bearer " + token("DIRECTOR")))
+        mvc.perform(post("/certificates/1/signature").header("Authorization", "Bearer " + token("DIRECTOR")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("GENERADA"));
     }
@@ -155,7 +155,7 @@ class CertificateApiControllerSecurityTest {
                 2L, "22200101", "LUIS ALBERTO ALARCON LOAYZA", 3L, "26.1", 4L,
                 new CertificateResponse.CourseSummary(5L, "202W0701", "Ingeniería de Software I"),
                 1, 8, "SW", 2018, Instant.parse("2026-09-12T00:00:00Z"), null,
-                true, "/api/v1/certificates/1/document");
+                true, "/certificates/1/document");
     }
 
     private String token() {

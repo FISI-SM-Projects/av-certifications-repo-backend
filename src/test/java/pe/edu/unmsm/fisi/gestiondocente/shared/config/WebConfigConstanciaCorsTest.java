@@ -19,7 +19,7 @@ class WebConfigConstanciaCorsTest {
 
     @Test
     void corsDebePermitirPostDeConstanciasDesdeOrigenesLocales() throws Exception {
-        mockMvc.perform(options("/api/v1/constancias/curso")
+        mockMvc.perform(options("/certificates")
                         .header("Origin", "http://localhost:3000")
                         .header("Access-Control-Request-Method", "POST"))
                 .andExpect(status().isOk())
@@ -38,7 +38,7 @@ class WebConfigConstanciaCorsTest {
 
     @Test
     void corsDebePermitirGetDeConsultasDesdePuertoAlternativo() throws Exception {
-        mockMvc.perform(options("/api/v1/constancias/docentes/22200275")
+        mockMvc.perform(options("/certificates?teacherCode=22200275")
                         .header("Origin", "http://localhost:3001")
                         .header("Access-Control-Request-Method", "GET"))
                 .andExpect(status().isOk())
@@ -48,7 +48,7 @@ class WebConfigConstanciaCorsTest {
 
     @Test
     void corsDebeRechazarOrigenNoConfigurado() throws Exception {
-        mockMvc.perform(options("/api/v1/constancias/curso")
+        mockMvc.perform(options("/certificates")
                         .header("Origin", "http://localhost:4200")
                         .header("Access-Control-Request-Method", "POST"))
                 .andExpect(status().isForbidden());

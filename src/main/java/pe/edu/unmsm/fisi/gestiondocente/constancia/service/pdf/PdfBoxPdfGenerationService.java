@@ -4,9 +4,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,6 +82,50 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
             return outputStream.toByteArray();
         } catch (IOException | IllegalArgumentException exception) {
             throw new PdfGenerationException("No se pudo generar el PDF de constancia semestral", exception);
+        }
+    }
+
+    @Override
+    public byte[] addVisibleInstitutionalSignature(byte[] originalPdf, String directorName, String directorCode,
+            String department, Instant signedAt) {
+        if (originalPdf == null || originalPdf.length == 0) {
+            throw new PdfGenerationException("El PDF original es obligatorio para firmar la constancia");
+        }
+
+        try (PDDocument document = PDDocument.load(originalPdf);
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            PDFont regularFont = loadRegularFont(document);
+            PDFont boldFont = loadBoldFont(document);
+            PDPage page = new PDPage(PDRectangle.A4);
+            document.addPage(page);
+
+            try (PDPageContentStream content = new PDPageContentStream(document, page)) {
+                float y = PDRectangle.A4.getHeight() - MARGIN;
+                writeVisibleSignatureLine(content, "FIRMA VISIBLE INSTITUCIONAL", boldFont, 15F, MARGIN, y);
+                y -= 32F;
+                writeVisibleSignatureLine(content, "Firmado digitalmente por:", regularFont, 11F, MARGIN, y);
+                y -= 20F;
+                writeVisibleSignatureLine(content, signatureText(directorName, "Director"), boldFont, 12F, MARGIN, y);
+                y -= 18F;
+                writeVisibleSignatureLine(content, "Codigo/Cuenta: " + signatureText(directorCode, "No registrado"), regularFont, 10F, MARGIN, y);
+                y -= 18F;
+                writeVisibleSignatureLine(content, "Cargo: Director de Departamento Academico", regularFont, 10F, MARGIN, y);
+                y -= 18F;
+                writeVisibleSignatureLine(content, "Departamento: " + signatureText(department, "No registrado"), regularFont, 10F, MARGIN, y);
+                y -= 18F;
+                writeVisibleSignatureLine(content, "Fecha de firma: " + DateTimeFormatter.ISO_OFFSET_DATE_TIME
+                        .format((signedAt == null ? Instant.now() : signedAt).atZone(LIMA_ZONE)), regularFont, 10F, MARGIN, y);
+                y -= 34F;
+                writeVisibleSignatureLine(content, "Firma visible institucional no criptografica.", boldFont, 11F, MARGIN, y);
+                y -= 18F;
+                writeVisibleSignatureLine(content, "Este bloque deja constancia visual de la aprobacion del director en el Sistema de Constancias FISI.",
+                        regularFont, 9F, MARGIN, y);
+            }
+
+            document.save(outputStream);
+            return outputStream.toByteArray();
+        } catch (IOException | IllegalArgumentException exception) {
+            throw new PdfGenerationException("No se pudo agregar la firma visible institucional", exception);
         }
     }
 
@@ -212,6 +258,26 @@ public class PdfBoxPdfGenerationService implements PdfGenerationService {
 
     private LocalDate generatedDateInLima(CertificateGenerationMetadata metadata) {
         return metadata.getGeneratedAt().atZone(LIMA_ZONE).toLocalDate();
+    }
+
+    private void writeVisibleSignatureLine(PDPageContentStream content, String text, PDFont font, float fontSize,
+            float x, float y) throws IOException {
+        content.beginText();
+        content.setFont(font, fontSize);
+        content.newLineAtOffset(x, y);
+        content.showText(stripAccents(text));
+        content.endText();
+    }
+
+    private String signatureText(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value.trim();
+    }
+
+    private String stripAccents(String value) {
+        return value == null ? "" : value
+                .replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u')
+                .replace('Á', 'A').replace('É', 'E').replace('Í', 'I').replace('Ó', 'O').replace('Ú', 'U')
+                .replace('ñ', 'n').replace('Ñ', 'N');
     }
 
     private PDFont loadRegularFont(PDDocument document) throws IOException {

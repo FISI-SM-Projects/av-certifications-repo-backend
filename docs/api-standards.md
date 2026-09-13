@@ -1,25 +1,25 @@
 # API standards
 
-The public backend API uses `/api/v1` as the versioned prefix.
+The public backend API follows the Aula Virtual/Apidog contract directly. It does not expose a public `/api/v1` prefix.
 
 ## Official public endpoints
 
-- `POST /api/v1/auth/login`
-- `GET /api/v1/teachers/me`
-- `GET /api/v1/teachers/me/courses`
-- `GET /api/v1/teachers`
-- `GET /api/v1/certificates`
-- `POST /api/v1/certificates`
-- `GET /api/v1/certificates/{id}`
-- `GET /api/v1/certificates/{id}/document`
-- `GET /api/v1/certificates/{id}/versions`
-- `POST /api/v1/certificates/{id}/signature`
+- `POST /auth/login`
+- `GET /teachers/me`
+- `GET /teachers/me/courses`
+- `GET /teachers`
+- `GET /certificates`
+- `POST /certificates`
+- `GET /certificates/{id}`
+- `GET /certificates/{id}/document`
+- `GET /certificates/{id}/versions`
+- `POST /certificates/{id}/signature`
 
 New public JSON endpoints must use English resource names, plural collections, lower camel case properties, `Id` suffix for identifiers, and `At` suffix for timestamps. Query filters must be sent as query parameters. Paginated endpoints use `page` and `size`; teacher courses default to `page=0`, `size=10`, and reject `size > 50`.
 
-Certificate list endpoints accept filters such as `teacherCode`, `certificateType`, `status`, `semester`, and `course`. Certificate document delivery uses `GET /api/v1/certificates/{id}/document?disposition=inline|attachment`; new APIs should not introduce verb-style paths such as `/download`.
+Certificate list endpoints accept filters such as `teacherCode`, `certificateType`, `status`, `semester`, and `course`. Certificate document delivery uses `GET /certificates/{id}/document?disposition=inline|attachment`; new APIs should not introduce verb-style paths such as `/download`.
 
-`GET /api/v1/teachers` is the official collection endpoint for director/admin views. `DIRECTOR` users are restricted to their own academic department, while `ADMIN` can list all teachers or filter by `department`.
+`GET /teachers` is the official collection endpoint for director/admin views. `DIRECTOR` users are restricted to their own academic department, while `ADMIN` can list all teachers or filter by `department`.
 
 ## Success envelope
 
@@ -57,19 +57,26 @@ JSON errors use:
   "statusCode": 400,
   "error": "Bad Request",
   "message": "Los datos enviados contienen errores de validación",
-  "path": "/api/v1/resource",
+  "path": "/resource",
   "timestamp": "2026-08-19T15:52:29.560Z",
   "details": []
 }
 ```
 
-## Temporary legacy endpoints
+## Removed legacy endpoints
 
-These routes remain only for compatibility while the frontend and API contract are migrated:
+The final public contract does not expose versioned, Spanish, demo, temporary, or legacy routes. Do not add public endpoints under:
 
-- `/api/v1/auth/me`
-- `/api/v1/docentes/**`
-- `/api/v1/constancias/**`
-- `/api/v1/director/**`
+- `/api/v1/**`
+- `/docentes/**`
+- `/constancias/**`
+- `/director/**`
+- `/demo/**`
+- `/legacy/**`
+- `/temp/**`
 
-Do not add new public routes under these Spanish segments. The current frontend MVP uses the official `/api/v1/teachers/**` and `/api/v1/certificates/**` routes; `/api/v1/constancias/**` and `/api/v1/director/**` remain available only as temporary compatibility layers for external or historical consumers.
+The current frontend MVP consumes only `/auth/login`, `/teachers/**`, `/certificates/**`, and `/health`.
+
+## Visible signature
+
+`POST /certificates/{id}/signature` applies a non-cryptographic institutional visible signature to the PDF. The signed document is served by `GET /certificates/{id}/document` when the certificate status is `FIRMADA`.

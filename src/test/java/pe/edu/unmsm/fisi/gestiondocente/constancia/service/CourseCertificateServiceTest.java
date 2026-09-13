@@ -79,9 +79,9 @@ class CourseCertificateServiceTest {
         assertThat(response.getSemester()).isEqualTo("26.1");
         assertThat(response.getGeneratedAt()).isEqualTo(Instant.parse("2026-07-14T15:30:00Z"));
         assertThat(response.getViewUrl()).isEqualTo(
-                "/api/v1/constancias/generaciones/22200275-32BGNYGF-1-26.1-v001/pdf");
+                "/certificates/22200275-32BGNYGF-1-26.1-v001/document");
         assertThat(response.getDownloadUrl()).isEqualTo(
-                "/api/v1/constancias/generaciones/22200275-32BGNYGF-1-26.1-v001/download");
+                "/certificates/22200275-32BGNYGF-1-26.1-v001/document?disposition=attachment");
 
         ArgumentCaptor<CertificateGenerationMetadata> metadataCaptor =
                 ArgumentCaptor.forClass(CertificateGenerationMetadata.class);

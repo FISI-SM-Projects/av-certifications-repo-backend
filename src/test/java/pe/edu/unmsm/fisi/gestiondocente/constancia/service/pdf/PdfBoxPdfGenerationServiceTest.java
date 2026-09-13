@@ -97,6 +97,26 @@ class PdfBoxPdfGenerationServiceTest {
         assertThat(text).contains("Sí");
     }
 
+    @Test
+    void debeAgregarFirmaVisibleInstitucionalNoCriptografica() throws Exception {
+        byte[] pdf = pdfGenerationService.generateCourseCertificate(validRequest(), validMetadata());
+
+        byte[] signedPdf = pdfGenerationService.addVisibleInstitutionalSignature(
+                pdf,
+                "Luis Director",
+                "lmotaa",
+                "CC",
+                Instant.parse("2026-09-13T08:30:00Z"));
+
+        String text = extractText(signedPdf);
+
+        assertThat(text).contains("FIRMA VISIBLE INSTITUCIONAL");
+        assertThat(text).contains("Firmado digitalmente por:");
+        assertThat(text).contains("Luis Director");
+        assertThat(text).contains("Director de Departamento Academico");
+        assertThat(text).contains("Firma visible institucional no criptografica");
+    }
+
     @ParameterizedTest
     @MethodSource("invalidInputs")
     void debeFallarConDatosImprescindiblesInvalidos(InvalidInput invalidInput) {
