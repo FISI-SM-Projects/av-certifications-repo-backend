@@ -6,6 +6,9 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -92,22 +95,29 @@ public class TeacherApiService {
         int pageNumber = normalizePage(page);
         int pageSize = normalizeSize(size);
         Teacher teacher = currentTeacher(authentication);
+        String semesterFilter = normalizeText(semester);
+        String courseFilter = normalizeText(course);
 
-        List<TeacherCourseResponse> filtered = workloads.findByTeacherCodeOrderById(teacher.getCode()).stream()
-                .filter(workload -> matchesSemester(workload, semester))
-                .filter(workload -> cycle == null || cycle.equals(workload.getCycle()))
-                .filter(workload -> plan == null || plan.equals(workload.getPlan()))
-                .filter(workload -> matchesCourse(workload, course))
+        Page<AcademicWorkload> filtered = workloads.findTeacherCourses(
+                teacher.getCode(),
+                semesterFilter != null,
+                semesterFilter == null ? "" : semesterFilter.toLowerCase(Locale.ROOT),
+                cycle,
+                plan,
+                courseFilter != null,
+                courseFilter == null ? "" : "%" + courseFilter.toLowerCase(Locale.ROOT) + "%",
+                PageRequest.of(pageNumber, pageSize, Sort.by("id").ascending()));
+
+        List<TeacherCourseResponse> data = filtered.getContent().stream()
                 .map(this::course)
                 .toList();
 
-        long totalElements = filtered.size();
-        int fromIndex = Math.min(pageNumber * pageSize, filtered.size());
-        int toIndex = Math.min(fromIndex + pageSize, filtered.size());
-        List<TeacherCourseResponse> data = filtered.subList(fromIndex, toIndex);
-        int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / pageSize);
-
-        var pagination = new PaginatedResponse.Pagination(pageNumber, pageSize, totalElements, totalPages, data.size());
+        var pagination = new PaginatedResponse.Pagination(
+                filtered.getNumber(),
+                filtered.getSize(),
+                filtered.getTotalElements(),
+                filtered.getTotalPages(),
+                filtered.getNumberOfElements());
         return new CoursePage(data, pagination);
     }
 
@@ -156,20 +166,6 @@ public class TeacherApiService {
         );
     }
 
-    private boolean matchesSemester(AcademicWorkload workload, String semester) {
-        return semester == null || semester.isBlank()
-                || workload.getAcademicPeriod().getSemesterCode().equalsIgnoreCase(semester.trim());
-    }
-
-    private boolean matchesCourse(AcademicWorkload workload, String course) {
-        if (course == null || course.isBlank()) {
-            return true;
-        }
-        String expected = course.trim().toLowerCase(Locale.ROOT);
-        return workload.getCourse().getCode().toLowerCase(Locale.ROOT).contains(expected)
-                || workload.getCourse().getName().toLowerCase(Locale.ROOT).contains(expected);
-    }
-
     private Department parseDepartment(String department) {
         try {
             return Department.valueOf(department);
@@ -199,6 +195,10 @@ public class TeacherApiService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "size must be less than or equal to " + MAX_SIZE);
         }
         return size;
+    }
+
+    private String normalizeText(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private OffsetDateTime atStartOfDay(LocalDate date) {

@@ -7,6 +7,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.server.ResponseStatusException;
 import pe.edu.unmsm.fisi.gestiondocente.auth.entity.AccountStatus;
@@ -52,17 +55,28 @@ class TeacherApiServiceTest {
         Fixtures f = fixtures();
         when(identity.account(any())).thenReturn(f.account());
         when(teachers.findByPersonId(10L)).thenReturn(Optional.of(f.teacher()));
-        when(workloads.findByTeacherCodeOrderById("22200101")).thenReturn(List.of(
-                workload(f.teacher(), 1L, "202W0701", "Ingeniería de Software I", "26.1", 8, 2018),
-                workload(f.teacher(), 2L, "202W0702", "Bases de Datos I", "26.1", 9, 2018),
-                workload(f.teacher(), 3L, "202W0703", "Arquitectura de Software", "26.2", 9, 2022)
-        ));
+        when(workloads.findTeacherCourses(eq("22200101"), eq(true), eq("26.1"), isNull(), eq(2018),
+                eq(true), eq("%software%"), any(Pageable.class)))
+                .thenAnswer(invocation -> {
+                    Pageable pageable = invocation.getArgument(7);
+                    return new PageImpl<>(
+                            List.of(workload(f.teacher(), 1L, "202W0701", "Ingeniería de Software I", "26.1", 8, 2018)),
+                            pageable,
+                            1);
+                });
 
         var page = service.courses(authentication(), "26.1", null, 2018, "software", 0, 1);
 
         assertThat(page.data()).extracting(item -> item.course().code()).containsExactly("202W0701");
         assertThat(page.pagination().totalElements()).isEqualTo(1);
         assertThat(page.pagination().pageSize()).isEqualTo(1);
+
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(workloads).findTeacherCourses(eq("22200101"), eq(true), eq("26.1"), isNull(), eq(2018),
+                eq(true), eq("%software%"), pageable.capture());
+        assertThat(pageable.getValue().getPageNumber()).isZero();
+        assertThat(pageable.getValue().getPageSize()).isEqualTo(1);
+        assertThat(pageable.getValue().getSort().getOrderFor("id")).isNotNull();
     }
 
     @Test
