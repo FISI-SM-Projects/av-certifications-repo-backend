@@ -1,5 +1,6 @@
 package pe.edu.unmsm.fisi.gestiondocente.shared.config;
 
+import java.net.URI;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,7 +55,7 @@ public class SecurityConfig {
     @Profile("dev")
     public UnboundIdContainer ldapContainer() {
         UnboundIdContainer container = new UnboundIdContainer(ldapBaseDn, "classpath:users.ldif");
-        container.setPort(53389);
+        container.setPort(URI.create(ldapUrl).getPort());
         return container;
     }
 
