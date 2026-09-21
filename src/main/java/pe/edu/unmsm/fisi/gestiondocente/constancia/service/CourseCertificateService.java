@@ -7,6 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CourseCertificateRequest;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.AuthenticatedCourseCertificateRequest;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.IssuerPayload;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.TeacherPayload;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.AuthenticatedTeacherContext;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.response.CourseCertificateResponse;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.CertificateGenerationMetadata;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.entity.EstadoConstancia;
@@ -92,6 +96,28 @@ public class CourseCertificateService {
         validator.validate(normalizedRequest);
         CourseCertificateRequest authoritativeRequest = withAuthoritativeTeacher(normalizedRequest);
 
+        return generateCourseCertificate(authoritativeRequest, false);
+    }
+
+    public CourseCertificateResponse generateAuthenticatedCourseCertificate(
+            AuthenticatedCourseCertificateRequest request,
+            AuthenticatedTeacherContext teacher) {
+        CourseCertificateRequest authoritativeRequest = new CourseCertificateRequest(
+                new TeacherPayload(teacher.fullName(), teacher.institutionalEmail(), teacher.teacherCode()),
+                request == null ? null : request.getCourse(),
+                new IssuerPayload(
+                        request == null ? null : request.getSourceSystem(),
+                        teacher.username(),
+                        teacher.institutionalEmail()));
+        CourseCertificateRequest normalizedRequest = normalizer.normalize(authoritativeRequest);
+        validator.validate(normalizedRequest);
+
+        return generateCourseCertificate(normalizedRequest, true);
+    }
+
+    private CourseCertificateResponse generateCourseCertificate(CourseCertificateRequest authoritativeRequest,
+            boolean selfService) {
+
         String certificateKey = certificateIdService.buildCourseCertificateKey(
                 authoritativeRequest.getTeacher().getTeacherCode(),
                 authoritativeRequest.getCourse().getCode(),
@@ -112,7 +138,7 @@ public class CourseCertificateService {
             CertificateGenerationMetadata storedMetadata =
                     constanciaRepository.saveGeneration(authoritativeRequest, metadata, pdfBytes);
 
-            return buildResponse(authoritativeRequest, storedMetadata);
+            return buildResponse(authoritativeRequest, storedMetadata, selfService);
         });
     }
 
@@ -167,9 +193,10 @@ public class CourseCertificateService {
     }
 
     private CourseCertificateResponse buildResponse(CourseCertificateRequest request,
-            CertificateGenerationMetadata metadata) {
-        String viewUrl = "/api/v1/constancias/generaciones/" + metadata.getGenerationId() + "/pdf";
-        String downloadUrl = "/api/v1/constancias/generaciones/" + metadata.getGenerationId() + "/download";
+            CertificateGenerationMetadata metadata, boolean selfService) {
+        String baseUrl = selfService ? "/api/v1/teachers/me/constancias" : "/api/v1/constancias";
+        String viewUrl = baseUrl + "/generaciones/" + metadata.getGenerationId() + "/pdf";
+        String downloadUrl = baseUrl + "/generaciones/" + metadata.getGenerationId() + "/download";
 
         return new CourseCertificateResponse(
                 metadata.getGenerationId(),

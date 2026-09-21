@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.SemesterCertificateRequest;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.response.SemesterCertificateResponse;
@@ -13,6 +14,7 @@ import pe.edu.unmsm.fisi.gestiondocente.constancia.service.SemesterCertificateSe
 
 @RestController
 @RequestMapping("/api/v1/constancias")
+@PreAuthorize("hasAnyRole('ADMIN', 'DIRECTOR_ESCUELA')")
 public class SemesterCertificateController {
 
     private final SemesterCertificateService semesterCertificateService;
