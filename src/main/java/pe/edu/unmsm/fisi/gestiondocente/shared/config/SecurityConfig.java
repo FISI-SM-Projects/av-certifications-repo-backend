@@ -1,6 +1,8 @@
 package pe.edu.unmsm.fisi.gestiondocente.shared.config;
 
 import java.net.URI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +19,7 @@ import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.server.UnboundIdContainer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.util.StringUtils;
 import pe.edu.unmsm.fisi.gestiondocente.auth.util.JwtAuthenticationEntryPoint;
 import pe.edu.unmsm.fisi.gestiondocente.auth.util.JwtFilter;
 
@@ -24,6 +27,8 @@ import pe.edu.unmsm.fisi.gestiondocente.auth.util.JwtFilter;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
     private final JwtFilter jwtFilter;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
@@ -55,14 +60,33 @@ public class SecurityConfig {
     @Profile("dev")
     public UnboundIdContainer ldapContainer() {
         UnboundIdContainer container = new UnboundIdContainer(ldapBaseDn, "classpath:users.ldif");
-        container.setPort(URI.create(ldapUrl).getPort());
+        container.setPort(resolveEmbeddedLdapPort());
         return container;
     }
 
     @Bean
+    @Profile("dev")
+    public DefaultSpringSecurityContextSource embeddedContextSource(UnboundIdContainer ldapContainer) {
+        String effectiveLdapUrl = StringUtils.hasText(ldapUrl)
+                ? ldapUrl
+                : "ldap://localhost:" + ldapContainer.getPort();
+        log.info("Embedded LDAP started at {}", effectiveLdapUrl);
+
+        return createContextSource(effectiveLdapUrl);
+    }
+
+    @Bean
+    @Profile("!dev")
     public DefaultSpringSecurityContextSource contextSource() {
-        String fullUrl = ldapUrl.endsWith("/") ? ldapUrl +
-                ldapBaseDn : ldapUrl + "/" + ldapBaseDn;
+        if (!StringUtils.hasText(ldapUrl)) {
+            throw new IllegalStateException("LDAP_URL must be configured outside the dev profile.");
+        }
+
+        return createContextSource(ldapUrl);
+    }
+
+    private DefaultSpringSecurityContextSource createContextSource(String url) {
+        String fullUrl = url.endsWith("/") ? url + ldapBaseDn : url + "/" + ldapBaseDn;
         DefaultSpringSecurityContextSource contextSource = new DefaultSpringSecurityContextSource(fullUrl);
         if (ldapManagerDn != null && !ldapManagerDn.isBlank() && ldapManagerPassword != null && !ldapManagerPassword.isBlank()) {
             contextSource.setUserDn(ldapManagerDn);
@@ -70,6 +94,19 @@ public class SecurityConfig {
         }
 
         return contextSource;
+    }
+
+    private int resolveEmbeddedLdapPort() {
+        if (!StringUtils.hasText(ldapUrl)) {
+            return 0;
+        }
+
+        int configuredPort = URI.create(ldapUrl).getPort();
+        if (configuredPort <= 0) {
+            throw new IllegalStateException("LDAP_URL must include a valid port for embedded LDAP.");
+        }
+
+        return configuredPort;
     }
 
     @Bean
