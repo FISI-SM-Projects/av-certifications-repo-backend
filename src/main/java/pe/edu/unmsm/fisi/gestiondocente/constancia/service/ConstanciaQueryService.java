@@ -25,6 +25,30 @@ public class ConstanciaQueryService {
                 .toList();
     }
 
+    public List<CertificateGenerationResponse> listAuthenticatedTeacherCertificates(String teacherCode) {
+        return constanciaRepository.findLatestByTeacherCode(teacherCode).stream()
+                .map(metadata -> toResponse(metadata, true))
+                .toList();
+    }
+
+    public CertificateGenerationResponse findAuthenticatedTeacherGeneration(String generationId, String teacherCode) {
+        return toResponse(findOwnedGeneration(generationId, teacherCode), true);
+    }
+
+    public List<CertificateGenerationResponse> findAuthenticatedTeacherHistory(String certificateKey,
+            String teacherCode) {
+        return constanciaRepository.findHistoryByCertificateKey(certificateKey).stream()
+                .filter(metadata -> teacherCode.equals(metadata.getTeacherCode()))
+                .map(metadata -> toResponse(metadata, true))
+                .toList();
+    }
+
+    public byte[] readAuthenticatedTeacherPdf(String generationId, String teacherCode) {
+        findOwnedGeneration(generationId, teacherCode);
+        return constanciaRepository.readPdf(generationId)
+                .orElseThrow(() -> new CertificatePdfNotFoundException(generationId));
+    }
+
     public CertificateGenerationResponse findByGenerationId(String generationId) {
         return constanciaRepository.findByGenerationId(generationId)
                 .map(this::toResponse)
@@ -50,8 +74,19 @@ public class ConstanciaQueryService {
     }
 
     private CertificateGenerationResponse toResponse(CertificateGenerationMetadata metadata) {
-        String viewUrl = "/api/v1/constancias/generaciones/" + metadata.getGenerationId() + "/pdf";
-        String downloadUrl = "/api/v1/constancias/generaciones/" + metadata.getGenerationId() + "/download";
+        return toResponse(metadata, false);
+    }
+
+    private CertificateGenerationMetadata findOwnedGeneration(String generationId, String teacherCode) {
+        return constanciaRepository.findByGenerationId(generationId)
+                .filter(metadata -> teacherCode.equals(metadata.getTeacherCode()))
+                .orElseThrow(() -> new CertificateGenerationNotFoundException(generationId));
+    }
+
+    private CertificateGenerationResponse toResponse(CertificateGenerationMetadata metadata, boolean selfService) {
+        String baseUrl = selfService ? "/api/v1/teachers/me/constancias" : "/api/v1/constancias";
+        String viewUrl = baseUrl + "/generaciones/" + metadata.getGenerationId() + "/pdf";
+        String downloadUrl = baseUrl + "/generaciones/" + metadata.getGenerationId() + "/download";
 
         return new CertificateGenerationResponse(
                 metadata.getGenerationId(),

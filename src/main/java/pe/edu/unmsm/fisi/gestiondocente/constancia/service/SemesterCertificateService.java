@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.SemesterCertificateSource;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.SemesterCertificateSourceSummary;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.AuthenticatedTeacherContext;
+import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.AuthenticatedSemesterCertificateRequest;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.CourseCertificateRequest;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.ExpectedCourseRequest;
 import pe.edu.unmsm.fisi.gestiondocente.constancia.dto.request.SemesterCertificateRequest;
@@ -107,6 +109,37 @@ public class SemesterCertificateService {
         Docente docente = docenteRepository.findByCodigo(normalizedRequest.getTeacherCode())
                 .orElseThrow(() -> new TeacherNotFoundForCertificateException(normalizedRequest.getTeacherCode()));
 
+        return generateSemesterCertificate(normalizedRequest, docente, false);
+    }
+
+    public SemesterCertificateResponse generateAuthenticatedSemesterCertificate(
+            AuthenticatedSemesterCertificateRequest request,
+            AuthenticatedTeacherContext teacher) {
+        SemesterCertificateRequest authoritativeRequest = new SemesterCertificateRequest(
+                teacher.teacherCode(),
+                request == null ? null : request.getSemester(),
+                request == null ? null : request.getExpectedCourses());
+        SemesterCertificateRequest normalizedRequest = normalizer.normalize(authoritativeRequest);
+        validator.validate(normalizedRequest);
+        Docente docente = new Docente(
+                teacher.teacherId(),
+                teacher.teacherCode(),
+                teacher.firstName(),
+                teacher.paternalLastName()
+                        + (teacher.maternalLastName() == null || teacher.maternalLastName().isBlank()
+                                ? ""
+                                : " " + teacher.maternalLastName()),
+                teacher.institutionalEmail(),
+                teacher.department(),
+                null,
+                null);
+
+        return generateSemesterCertificate(normalizedRequest, docente, true);
+    }
+
+    private SemesterCertificateResponse generateSemesterCertificate(SemesterCertificateRequest normalizedRequest,
+            Docente docente, boolean selfService) {
+
         String certificateKey = certificateIdService.buildSemesterCertificateKey(
                 normalizedRequest.getTeacherCode(),
                 normalizedRequest.getSemester());
@@ -132,7 +165,7 @@ public class SemesterCertificateService {
             CertificateGenerationMetadata storedMetadata =
                     constanciaRepository.saveGeneration(sourceSummary, metadata, pdfBytes);
 
-            return buildResponse(sourceSummary, storedMetadata);
+            return buildResponse(sourceSummary, storedMetadata, selfService);
         });
     }
 
@@ -280,15 +313,16 @@ public class SemesterCertificateService {
     }
 
     private SemesterCertificateResponse buildResponse(SemesterCertificateSourceSummary sourceSummary,
-            CertificateGenerationMetadata metadata) {
+            CertificateGenerationMetadata metadata, boolean selfService) {
         List<SemesterCertificateSource> sources = sourceSummary.getSourceGenerations();
         validateSources(sources);
 
         List<String> sourceGenerationIds = sources.stream()
                 .map(SemesterCertificateSource::getGenerationId)
                 .toList();
-        String viewUrl = "/api/v1/constancias/generaciones/" + metadata.getGenerationId() + "/pdf";
-        String downloadUrl = "/api/v1/constancias/generaciones/" + metadata.getGenerationId() + "/download";
+        String baseUrl = selfService ? "/api/v1/teachers/me/constancias" : "/api/v1/constancias";
+        String viewUrl = baseUrl + "/generaciones/" + metadata.getGenerationId() + "/pdf";
+        String downloadUrl = baseUrl + "/generaciones/" + metadata.getGenerationId() + "/download";
 
         return new SemesterCertificateResponse(
                 metadata.getGenerationId(),
