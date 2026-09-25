@@ -39,14 +39,27 @@ class SecurityConfigTest {
     }
 
     @Test
-    void respectsExplicitEmbeddedLdapPort() {
-        SecurityConfig securityConfig = securityConfig("ldap://localhost:53889");
+    void embeddedLdapIgnoresConfiguredExternalUrlAndUsesEphemeralPort() {
+        SecurityConfig securityConfig = securityConfig("ldap://localhost:53389");
         UnboundIdContainer container = securityConfig.ldapContainer();
-        DefaultSpringSecurityContextSource contextSource = securityConfig.embeddedContextSource(container);
+        GenericApplicationContext applicationContext = new GenericApplicationContext();
+        applicationContext.refresh();
+        container.setApplicationContext(applicationContext);
 
-        assertEquals(53889, container.getPort());
-        assertArrayEquals(new String[] {"ldap://localhost:53889/"}, contextSource.getUrls());
-        assertEquals(LDAP_BASE_DN, contextSource.getBaseLdapPathAsString());
+        assertEquals(0, container.getPort());
+
+        try {
+            container.afterPropertiesSet();
+            int effectivePort = container.getPort();
+            DefaultSpringSecurityContextSource contextSource = securityConfig.embeddedContextSource(container);
+
+            assertTrue(effectivePort > 0);
+            assertArrayEquals(new String[] {"ldap://localhost:" + effectivePort + "/"}, contextSource.getUrls());
+            assertEquals(LDAP_BASE_DN, contextSource.getBaseLdapPathAsString());
+        } finally {
+            container.destroy();
+            applicationContext.close();
+        }
     }
 
     @Test

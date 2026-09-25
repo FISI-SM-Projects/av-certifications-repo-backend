@@ -1,6 +1,5 @@
 package pe.edu.unmsm.fisi.gestiondocente.shared.config;
 
-import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,16 +59,14 @@ public class SecurityConfig {
     @Profile("dev")
     public UnboundIdContainer ldapContainer() {
         UnboundIdContainer container = new UnboundIdContainer(ldapBaseDn, "classpath:users.ldif");
-        container.setPort(resolveEmbeddedLdapPort());
+        container.setPort(0);
         return container;
     }
 
     @Bean
     @Profile("dev")
     public DefaultSpringSecurityContextSource embeddedContextSource(UnboundIdContainer ldapContainer) {
-        String effectiveLdapUrl = StringUtils.hasText(ldapUrl)
-                ? ldapUrl
-                : "ldap://localhost:" + ldapContainer.getPort();
+        String effectiveLdapUrl = "ldap://localhost:" + ldapContainer.getPort();
         log.info("Embedded LDAP started at {}", effectiveLdapUrl);
 
         return createContextSource(effectiveLdapUrl);
@@ -94,19 +91,6 @@ public class SecurityConfig {
         }
 
         return contextSource;
-    }
-
-    private int resolveEmbeddedLdapPort() {
-        if (!StringUtils.hasText(ldapUrl)) {
-            return 0;
-        }
-
-        int configuredPort = URI.create(ldapUrl).getPort();
-        if (configuredPort <= 0) {
-            throw new IllegalStateException("LDAP_URL must include a valid port for embedded LDAP.");
-        }
-
-        return configuredPort;
     }
 
     @Bean
